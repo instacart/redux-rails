@@ -29,19 +29,59 @@ const replaceMember = ({idAttribute, data, resourceNameSpace, state, cId}) => {
     ]
   }
 
-  // model already exists in model array -- replace it.
+  // model already exists in model array -- replace its attributes.
   return models.map((model) => {
-    if (model[idAttribute] === data[idAttribute] || (cId  && model.cId === cId)) {
-      return Object.assign({}, model, {
-        [idAttribute]: data.id,
-        loading: false,
-        loadingError: undefined,
-        attributes: data
-      })
+    if (model[idAttribute] !== data[idAttribute] && (!cId  || model.cId !== cId)) {
+      return model
     }
 
-    return model
+    return Object.assign({}, model, {
+      [idAttribute]: data.id,
+      loading: false,
+      loadingError: undefined,
+      attributes: data
+    })
   })
+}
+
+const updateMemberAttributes = ({idAttribute, data, resourceNameSpace, state}) => {
+  const isSingleModel = resourceNameSpace === 'attributes'
+  const models = state.models.slice(0) || []
+  let currentModel
+
+  if (isSingleModel) { return data }
+
+  currentModel = models.find((model) => {
+    return model[idAttribute] === data[idAttribute] || (cId  && model.cId === cId)
+  })
+
+  if (!currentModel) {
+    // model does not yet exist in models array -- create it.
+    return [
+      ...models,
+      Object.assign({}, apiDefaultState, { attributes: data })
+    ]
+  }
+
+  // model already exists in model array -- replace its attributes.
+  return models.map((model) => {
+    if (model[idAttribute] !== data[idAttribute]) { return model }
+
+    return Object.assign({}, model, {
+      loading: false,
+      loadingError: undefined,
+      attributes: Object.assign({}, model.attributes, data)
+    })
+  })
+
+}
+
+const destroyMember = ({idAttribute, id, resourceNameSpace, state}) => {
+  if (resourceNameSpace === 'attributes') {
+    return apiDefaultState
+  }
+
+  return state.models.filter(model => model[idAttribute] !== id)
 }
 
 const setMemberLoading = ({idAttribute, id, state, resourceNameSpace}) => {
@@ -59,7 +99,7 @@ const setMemberLoading = ({idAttribute, id, state, resourceNameSpace}) => {
     })
   }
 
-  currentModel = models.find(model => model[idAttribute] === id)
+  currentModel = models.find(model => id && model[idAttribute] === id)
 
   if (!currentModel) {
     // single model within a collection, but does not yet exist in the collection.
@@ -116,14 +156,12 @@ const setMemberLoadingError = ({idAttribute, id, state, resourceNameSpace, error
 
   // single model within a collection -- find it and set its loading state.
   return models.map((model) => {
-    if (model[idAttribute] === id) {
-      return Object.assign({}, model, {
-        loading: false,
-        loadingError: error
-      })
-    }
+    if (model[idAttribute] !== id) { return model }
 
-    return model
+    return Object.assign({}, model, {
+      loading: false,
+      loadingError: error
+    })
   })
 }
 
@@ -132,6 +170,9 @@ export default (config) => {
 
     Object.keys(config.resources).forEach((resource) => {
       reducers[resource] = (state = apiDefaultState, action) => {
+        const resourceNameSpace = getResourceNameSpace({config, resource})
+        const idAttribute = getResourceIdAttribute({config, resource})
+
         switch(action.type) {
           case `${resource}.INDEX`: {
             return Object.assign({}, state, {
@@ -156,8 +197,6 @@ export default (config) => {
           }
           case `${resource}.SHOW`: {
             const { id } = action.data
-            const resourceNameSpace = getResourceNameSpace({config, resource})
-            const idAttribute = getResourceIdAttribute({config, resource})
 
             return Object.assign({}, state, {
               [resourceNameSpace]: setMemberLoading({idAttribute, id, state, resourceNameSpace})
@@ -165,8 +204,6 @@ export default (config) => {
           }
           case `${resource}.SHOW_SUCCESS`: {
             const data = action.response
-            const resourceNameSpace = getResourceNameSpace({config, resource})
-            const idAttribute = getResourceIdAttribute({config, resource})
 
             return Object.assign({}, state, {
               loading: false,
@@ -175,18 +212,13 @@ export default (config) => {
             })
           }
           case `${resource}.SHOW_ERROR`: {
-            const id = action.data && action.data.id
-            const { error } = action
-            const resourceNameSpace = getResourceNameSpace({config, resource})
-            const idAttribute = getResourceIdAttribute({config, resource})
+            const { id, error } = action
 
             return Object.assign({}, state, {
               [resourceNameSpace]: setMemberLoadingError({state, id, idAttribute, error, resourceNameSpace})
             })
           }
           case `${resource}.ASSIGN_CID`: {
-            const resourceNameSpace = getResourceNameSpace({config, resource})
-            const idAttribute = getResourceIdAttribute({config, resource})
             const data = {
               cId: action.cId,
               loading: false,
@@ -202,8 +234,6 @@ export default (config) => {
           case `${resource}.CREATE_SUCCESS`: {
             const data = action.response
             const { cId } = action
-            const resourceNameSpace = getResourceNameSpace({config, resource})
-            const idAttribute = getResourceIdAttribute({config, resource})
 
             return Object.assign({}, state, {
               loading: false,
@@ -212,10 +242,42 @@ export default (config) => {
             })
           }
           case `${resource}.CREATE_ERROR`: {
-            const id = action.data && action.data.id
-            const { error } = action
-            const resourceNameSpace = getResourceNameSpace({config, resource})
-            const idAttribute = getResourceIdAttribute({config, resource})
+            const { id, error } = action
+
+            return Object.assign({}, state, {
+              [resourceNameSpace]: setMemberLoadingError({state, id, idAttribute, error, resourceNameSpace})
+            })
+          }
+          case `${resource}.UPDATE`: {
+            const { id } = action.data
+
+            return Object.assign({}, state, {
+              [resourceNameSpace]: setMemberLoading({idAttribute, id, state, resourceNameSpace})
+            })
+          }
+          case `${resource}.UPDATE_SUCCESS`: {
+            const data = action.response
+
+            return Object.assign({}, state, {
+              [resourceNameSpace]: updateMemberAttributes({idAttribute, data, resourceNameSpace, state})
+            })
+          }
+          case `${resource}.UPDATE_ERROR`: {
+            const { id, error } = action
+
+            return Object.assign({}, state, {
+              [resourceNameSpace]: setMemberLoadingError({state, id, idAttribute, error, resourceNameSpace})
+            })
+          }
+          case `${resource}.DESTROY_SUCCESS`: {
+            const { id } = action
+
+            return Object.assign({}, state, {
+              [resourceNameSpace]: destroyMember({idAttribute, id, resourceNameSpace, state})
+            })
+          }
+          case `${resource}.DESTROY_ERROR`: {
+            const { id, error } = action
 
             return Object.assign({}, state, {
               [resourceNameSpace]: setMemberLoadingError({state, id, idAttribute, error, resourceNameSpace})
@@ -230,10 +292,3 @@ export default (config) => {
 
     return combineReducers(reducers)
   }
-
-
-/*
-  --TODO--
-  UPDATE
-  DESTROY
-*/

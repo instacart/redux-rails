@@ -108,6 +108,23 @@ window.setTimeout(() => {
       userId: Math.floor(Math.random() * 100)
     }
   })
+
+  siteApp.dispatch({
+    type: 'Posts.UPDATE',
+    data: {
+      id: 3,
+      title: 'foo',
+      body: 'bar',
+      userId: Math.floor(Math.random() * 100)
+    }
+  })
+
+  window.setTimeout(() => {
+    siteApp.dispatch({
+      type: 'Posts.DESTROY',
+      data: { id: 3 }
+    })
+  }, 5000)
   // siteApp.dispatch(railsActions.show({
   //   resource: 'retailers',
   //   data: {

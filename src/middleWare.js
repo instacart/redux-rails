@@ -54,13 +54,14 @@ const fetchResource = ({store, resource, config, data, cId, railsAction, httpMet
           return store.dispatch({
             type: `${resource}.${railsAction}_ERROR`,
             error: json.error,
-            data
+            id: data.id
           })
         }
 
         store.dispatch({
           type: `${resource}.${railsAction}_SUCCESS`,
           cId,
+          id: data.id,
           response: parseResult({
             json,
             resource,
