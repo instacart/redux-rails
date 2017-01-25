@@ -159,3 +159,136 @@ const mapDispatchToProps = (dispatch) => {
 
 export default connect(mapStateToProps, mapDispatchToProps)(MyReactComponent)
 ```
+
+
+## Config in depth
+The Redux Rails config has many options. You can also use several configs along with several instances of the apiReducer to distribute your resources throughout your redux store's hierarchy.
+
+A complex example of a Redux Rails config:
+```
+const apiConfig = {
+  domain: 'https://your-site-url.com/api/',
+  resources: {
+    Posts: {
+      controller: 'posts',
+      parse: {
+        member: resp => resp.posts,
+        collection: (resp) => {
+          return {
+            foo: 'bar',
+            response: resp.posts
+          }
+        }
+      },
+      idAttribute: '_id',
+      domain: 'https://your-OTHER-site-url.com/api/'
+    }
+  },
+  fetchParams: {
+    headers: {
+      'content-type':'application/json'
+    }
+  }
+}
+```
+
+### domain
+This is the top level for all resources in the config. If your site's api is entirely under 'https://your-site-url.com/api/', ex. `'https://your-site-url.com/api/posts'`, then this should be the only domain setting you need.
+
+If you need a different domain per resource, ex. 'https://your-site-url.com/api/posts' and 'https://your-OTHER-site-url.com/api/comments', you can set a specific domain per resource that needs needs it. Any resource without a domain set will fallback to this top-level domain setting.
+
+### resources
+This is a mapping of your Rails resources. Resources can be plural (ex: posts) or singular (ex: post). Each resource has a list of optional attributes and one required attribute (controller)
+
+#### controller (required)
+The controller attribute tells Redux Rails what specific url to make HTTP actions against. For example, the resource `Posts` could be found at `https://your-site-url.com/api/posts`. This would make the domain for this resource `https://your-site-url.com/api/` and the controller `posts`. The controller does not need to match the name of the resource, though this is generally good practice for a RESTful api.
+
+#### parse (optional)
+This can be either a single function or an object with two functions, `member` and `collection`. These functions are used to parse the response from your api, and its where you should do any data transformation before the data is added to your Redux store.
+
+Example of a single function for all resource types:
+```
+const apiConfig = {
+  domain: 'https://your-site-url.com/api/',
+  resources: {
+    Posts: {
+      controller: 'posts',
+      parse: (resp) => {
+        return {
+          foo: 'bar',
+          response: resp.posts
+        }
+      }
+    }
+  }
+}
+```
+
+Example of a function for each resource type:
+```
+const apiConfig = {
+  domain: 'https://your-site-url.com/api/',
+  resources: {
+    Posts: {
+      controller: 'posts',
+      parse: {
+        member: resp => resp.posts,
+        collection: (resp) => {
+          return {
+            foo: 'bar',
+            response: resp.posts
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+#### idAttribute (optional)
+This is defaulted to `id` and tells Redux Rails which attribute on your resource is the unique identifier.
+
+#### domain (optional)
+If you'd like a different domain for a specific resource, you can set `domain` on the resource level as well.
+
+### fetchParams
+These are the options sent to the `Fetch` call when making any call to your api. These map directly to the options available in the [Fetch Request object](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request).
+
+This is where you would set your headers or credentials, for example.
+
+### Using multiple configs
+Multiple configs can be used throughout your Redux store's hierarchy.
+
+```
+import { createStore, applyMiddleware } from 'redux'
+import { middleWare, apiReducer } from 'redux-rails'
+
+const postsConfig = {
+  domain: 'https://your-site-url.com/api/',
+  resources: {
+    Posts: {
+      controller: 'posts'
+    }
+  }
+}
+
+const commentsConfig = {
+  domain: 'https://your-comments-site-url.com/api/',
+  resources: {
+    Comments: {
+      controller: 'comments'
+    }
+  }
+}
+
+const App = createStore(
+  combineReducers({
+    posts: apiReducer(postsConfig),
+    comments: apiReducer(commentsConfig)
+  }),
+  {},
+  composeEnhancers(
+    applyMiddleware(middleWare(postsConfig, commentsConfig))
+  )
+)
+```
