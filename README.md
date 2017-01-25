@@ -1,4 +1,4 @@
-React Rails
+Redux Rails
 =========================
 
 ## Basic Usage
