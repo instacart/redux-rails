@@ -111,6 +111,8 @@ App.dispatch(railsActions.destroy({
 First, set up your Redux Rails config, set up your apiReducer and apply the Redux Rails middle ware
 
 ```
+import { bindActionCreators } from 'redux'
+import { connect } from 'react-redux'
 import { railsActions } from 'redux-rails'
 
 const MyReactComponent = React.createClass({
