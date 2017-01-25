@@ -42,7 +42,7 @@ const constructfetchOptions = ({httpMethod, resource, config, data}) => {
   return options
 }
 
-const fetchResource = ({store, resource, config, data, cId, railsAction, httpMethod}) => {
+const fetchResource = ({store, resource, config, data={}, cId, railsAction, httpMethod}) => {
   const resourceConfig = config.resources[resource]
   const domain = resourceConfig.domain || config.domain
   const controller = resourceConfig.controller
@@ -53,7 +53,7 @@ const fetchResource = ({store, resource, config, data, cId, railsAction, httpMet
         if(!response.ok) {
           return store.dispatch({
             type: `${resource}.${railsAction}_ERROR`,
-            error: json.error,
+            error: json.error || { message: response.statusText },
             id: data.id
           })
         }

@@ -60,6 +60,9 @@ const apiConfig = {
   resources: {
     Posts: {
       controller: 'posts'
+    },
+    User: {
+      controller: 'user'
     }
   }
 }
@@ -77,14 +80,6 @@ const siteApp = window.siteApp = createStore(
     applyMiddleware(middleWare(apiConfig))
   )
 );
-//
-// const siteApp = window.siteApp = createStore(
-//   combineReducers({
-//     counter: counterReducer,
-//     models: apiReducer(apiConfig)
-//   }),
-//   applyMiddleware(middleWare(apiConfig))
-// )
 
 window.setTimeout(() => {
   console.log('starting state', siteApp.getState())
@@ -95,10 +90,23 @@ window.setTimeout(() => {
   siteApp.dispatch({
     type: 'increment'
   })
-  siteApp.dispatch({
-    type: 'Posts.SHOW',
-    data: {id: 3}
-  })
+  // siteApp.dispatch({
+  //   type: 'Posts.SHOW',
+  //   data: {id: 3}
+  // })
+
+  siteApp.dispatch(railsActions.show({
+    resource: 'Posts',
+    id: 3
+  }))
+
+  // siteApp.dispatch({
+  //   type: 'User.SHOW'
+  // })
+
+  siteApp.dispatch(railsActions.show({
+    resource: 'User'
+  }))
 
   siteApp.dispatch({
     type: 'Posts.CREATE',
@@ -121,9 +129,20 @@ window.setTimeout(() => {
 
   window.setTimeout(() => {
     siteApp.dispatch({
+      type: 'User.UPDATE',
+      data: {
+        description: 'A pretty ok human living on Earth.'
+      }
+    })
+
+    siteApp.dispatch({
       type: 'Posts.DESTROY',
       data: { id: 3 }
     })
+
+    window.setTimeout(() => {
+      siteApp.dispatch({ type: 'User.DESTROY' })
+    }, 2000)
   }, 5000)
   // siteApp.dispatch(railsActions.show({
   //   resource: 'retailers',
