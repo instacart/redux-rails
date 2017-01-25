@@ -4,7 +4,8 @@
   "description": "",
   "main": "src/index.js",
   "scripts": {
-    "start":  "node_modules/.bin/webpack --process --watch"
+    "start": "webpack --process --watch",
+    "build": "webpack --progress --config webpack.config.js"
   },
   "author": "Dominic Cocchiarella",
   "license": "MIT",
