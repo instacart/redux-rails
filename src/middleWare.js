@@ -13,7 +13,7 @@ import {
 
 const parseResult = ({json, resource, config, resourceType}) => {
   const resourceParse = config.resources[resource].parse
-  
+
   // parse methods can be defined per resousrce type or
   // as a catchall for all resource types
   switch(typeof resourceParse) {
@@ -61,10 +61,16 @@ const constructfetchOptions = ({railsAction, resource, config, data}) => {
   return options
 }
 
-const fetchResource = ({store, resource, config, data={}, cId, railsAction }) => {
+const fetchResource = ({store, resource, config, data={}, railsAction}) => {
   const resourceConfig = config.resources[resource]
   const domain = resourceConfig.domain || config.domain
   const controller = resourceConfig.controller
+  let cId
+
+  if (railsAction === 'CREATE') {
+    cId = getUniqueClientId()
+    store.dispatch({ type: `${resource}.ASSIGN_CID`, cId })
+  }
 
   fetch(constructUrl({domain, controller, railsAction, data}), constructfetchOptions({railsAction, resource, data, config}))
     .then((response) => {

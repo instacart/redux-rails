@@ -10,59 +10,76 @@ const apiDefaultState = {
   loadingError: undefined
 }
 
-const replaceMemberAttributes = ({idAttribute, data, state, cId}) => {
+// reducer utilities
+const findModel = ({idAttribute, id, cId, state}) => {
+  // returns model, found by id or cId, from state.models array
   const models = (state.models && state.models.slice(0)) || []
-  let currentModel
 
-  currentModel = models.find((model) => {
-    return model[idAttribute] === data[idAttribute] || (cId  && model.cId === cId)
-  })
-
-  if (!currentModel) {
-    // model does not yet exist in models array -- create it.
-    return [
-      ...models,
-      Object.assign({}, apiDefaultState, data)
-    ]
-  }
-
-  // model already exists in model array -- replace its attributes.
-  return models.map((model) => {
-    if (model[idAttribute] !== data[idAttribute] && (!cId  || model.cId !== cId)) {
-      return model
-    }
-
-    return Object.assign({}, model, {
-      [idAttribute]: data.id,
-      loading: false,
-      loadingError: undefined,
-      attributes: data
-    })
+  return models.find((model) => {
+    return model[idAttribute] === id || (cId  && model.cId === cId)
   })
 }
 
-const updateMemberAttributes = ({idAttribute, data, state}) => {
+const collectionWithNewModel = ({state, model}) => {
+  // returns new array with model inserted
+  const models = state.models || []
+
+  return [
+    ...models,
+    model
+  ]
+}
+
+const collectionWithUpdatedModel = ({idAttribute, id, cId, state, updatedModel}) => {
+  // returns collection (models array) with model's attributes updated
   const models = (state.models && state.models.slice(0)) || []
-  const currentModel = models.find(model => model[idAttribute] === data[idAttribute])
+
+  return models.map((model) => {
+    if (model[idAttribute] !== id && (!cId  || model.cId !== cId)) {
+      return model
+    }
+
+    return Object.assign({}, model, updatedModel)
+  })
+}
+
+const replaceMemberAttributes = ({idAttribute, data, state, cId}) => {
+  const id = data[idAttribute]
+  const currentModel = findModel({idAttribute, id, cId, state})
+  let model
 
   if (!currentModel) {
     // model does not yet exist in models array -- create it.
-    return [
-      ...models,
-      Object.assign({}, apiDefaultState, { attributes: data })
-    ]
+    model = Object.assign({}, apiDefaultState, data)
+    return collectionWithNewModel({state, model})
   }
 
-  // model already exists in models array -- replace its attributes.
-  return models.map((model) => {
-    if (model[idAttribute] !== data[idAttribute]) { return model }
+  // model already exists in model array -- replace its attributes.
+  return collectionWithUpdatedModel({idAttribute, id, cId, state, updatedModel: {
+    [idAttribute]: data.id,
+    loading: false,
+    loadingError: undefined,
+    attributes: data
+  }})
+}
 
-    return Object.assign({}, model, {
-      loading: false,
-      loadingError: undefined,
-      attributes: Object.assign({}, model.attributes, data)
-    })
-  })
+const updateMemberAttributes = ({idAttribute, data, state}) => {
+  const id = data[idAttribute]
+  const currentModel = findModel({idAttribute, id, state})
+  let model
+
+  if (!currentModel) {
+    // model does not yet exist in models array -- create it.
+    model = Object.assign({}, apiDefaultState, { attributes: data })
+    return collectionWithNewModel({state, model})
+  }
+
+  // model already exists in model array -- update its attributes.
+  return collectionWithUpdatedModel({idAttribute, id, state, updatedModel: {
+    loading: false,
+    loadingError: undefined,
+    attributes: Object.assign({}, currentModel.attributes, data)
+  }})
 
 }
 
@@ -71,61 +88,44 @@ const destroyMember = ({idAttribute, id, state}) => {
 }
 
 const setMemberLoading = ({idAttribute, id, state}) => {
-  // this function sets the loading state of a member within a collection
-  const models = (state.models && state.models.slice(0)) || []
-  const currentModel = models.find(model => id && model[idAttribute] === id)
+  // sets the loading state of a member within a collection
+  const currentModel = findModel({idAttribute, id, state})
+  let model
 
   if (!currentModel) {
-    // model does not yet exist in the collection.
-    // Add it to collection and set its loading state.
-    return [
-      ...models,
-      {
-        [idAttribute]: id,
-        loading: true
-      }
-    ]
+    // model does not yet exist in models array -- create it.
+    model = { [idAttribute]: id, loading: true }
+    return collectionWithNewModel({state, model})
   }
 
-  // model within a collection -- find it and set its loading state.
-  return models.map((model) => {
-    if (model[idAttribute] === id) {
-      return Object.assign({}, model, { loading: true })
-    }
-
-    return model
-  })
+  // model already exists in model array -- update its loading state.
+  model = { loading: true }
+  return collectionWithUpdatedModel({idAttribute, id, state, updatedModel: model})
 }
 
 const setMemberLoadingError = ({idAttribute, id, state, error}) => {
   // this function sets the loading error state of a member in a collection
-  const models = (state.models && state.models.slice(0)) || []
-  const currentModel = models.find(model => model[idAttribute] === id)
+  const currentModel = findModel({idAttribute, id, state})
 
   if (!currentModel) {
-    // single model within a collection, but does not yet exist in the collection.
-    // Add it to collection and set its loading state.
-    return [
-      ...models,
-      {
-        [idAttribute]: id,
-        loadingError: error,
-        loading: false
-      }
-    ]
+    // model does not yet exist in models array -- create it.
+    model = {
+      [idAttribute]: id,
+      loadingError: error,
+      loading: false
+    }
+    return collectionWithNewModel({state, model})
   }
 
   // single model within a collection -- find it and set its loading state.
-  return models.map((model) => {
-    if (model[idAttribute] !== id) { return model }
-
-    return Object.assign({}, model, {
-      loading: false,
-      loadingError: error
-    })
-  })
+  return collectionWithUpdatedModel({idAttribute, id, state, updatedModel: {
+    loading: false,
+    loadingError: error
+  }})
 }
 
+
+// main reducer
 export default (config) => {
     const reducers = {}
 
