@@ -62,10 +62,7 @@ const apiConfig = {
       controller: 'posts'
     },
     User: {
-      controller: 'user',
-      parse: (resp) => {
-        return { thing: 'thing', response: resp }
-      }
+      controller: 'user'
     }
   }
 }

@@ -10,7 +10,7 @@ const apiDefaultState = {
   loadingError: undefined
 }
 
-const replaceMember = ({idAttribute, data, resourceNameSpace, state, cId}) => {
+const replaceMemberAttributes = ({idAttribute, data, state, cId}) => {
   const models = (state.models && state.models.slice(0)) || []
   let currentModel
 
@@ -41,14 +41,9 @@ const replaceMember = ({idAttribute, data, resourceNameSpace, state, cId}) => {
   })
 }
 
-const updateMemberAttributes = ({idAttribute, data, resourceNameSpace, state}) => {
-  const isSingleModel = resourceNameSpace === 'attributes'
-  const models = state.models.slice(0) || []
-  let currentModel
-
-  if (isSingleModel) { return data }
-
-  currentModel = models.find(model => model[idAttribute] === data[idAttribute])
+const updateMemberAttributes = ({idAttribute, data, state}) => {
+  const models = (state.models && state.models.slice(0)) || []
+  const currentModel = models.find(model => model[idAttribute] === data[idAttribute])
 
   if (!currentModel) {
     // model does not yet exist in models array -- create it.
@@ -58,7 +53,7 @@ const updateMemberAttributes = ({idAttribute, data, resourceNameSpace, state}) =
     ]
   }
 
-  // model already exists in model array -- replace its attributes.
+  // model already exists in models array -- replace its attributes.
   return models.map((model) => {
     if (model[idAttribute] !== data[idAttribute]) { return model }
 
@@ -71,33 +66,17 @@ const updateMemberAttributes = ({idAttribute, data, resourceNameSpace, state}) =
 
 }
 
-const destroyMember = ({idAttribute, id, resourceNameSpace, state}) => {
-  if (resourceNameSpace === 'attributes') {
-    return apiDefaultState
-  }
-
+const destroyMember = ({idAttribute, id, state}) => {
   return state.models.filter(model => model[idAttribute] !== id)
 }
 
-const setMemberLoading = ({idAttribute, id, state, resourceNameSpace}) => {
-  // this function sets the loading state of a member
-  // works if member exists within a collection or if it's a singular resource
-
-  const isSingleModel = resourceNameSpace === 'attributes'
-  const models = state.models || []
-  let currentModel
-
-  if (isSingleModel) {
-    // single model not in a collection -- update its loading state.
-    return Object.assign({}, state.attributes, {
-      loading: true
-    })
-  }
-
-  currentModel = models.find(model => id && model[idAttribute] === id)
+const setMemberLoading = ({idAttribute, id, state}) => {
+  // this function sets the loading state of a member within a collection
+  const models = (state.models && state.models.slice(0)) || []
+  const currentModel = models.find(model => id && model[idAttribute] === id)
 
   if (!currentModel) {
-    // single model within a collection, but does not yet exist in the collection.
+    // model does not yet exist in the collection.
     // Add it to collection and set its loading state.
     return [
       ...models,
@@ -108,7 +87,7 @@ const setMemberLoading = ({idAttribute, id, state, resourceNameSpace}) => {
     ]
   }
 
-  // single model within a collection -- find it and set its loading state.
+  // model within a collection -- find it and set its loading state.
   return models.map((model) => {
     if (model[idAttribute] === id) {
       return Object.assign({}, model, { loading: true })
@@ -118,23 +97,10 @@ const setMemberLoading = ({idAttribute, id, state, resourceNameSpace}) => {
   })
 }
 
-const setMemberLoadingError = ({idAttribute, id, state, resourceNameSpace, error}) => {
-  // this function sets the loading error state of a member
-  // works if member exists within a collection or if it's a singular resource
-
-  const isSingleModel = resourceNameSpace === 'attributes'
-  const models = state.models || []
-  let currentModel
-
-  if (isSingleModel) {
-    // single model not in a collection -- update its loading state.
-    return Object.assign({}, state.attributes, {
-      loading: false,
-      loadingError: error
-    })
-  }
-
-  currentModel = models.find(model => model[idAttribute] === id)
+const setMemberLoadingError = ({idAttribute, id, state, error}) => {
+  // this function sets the loading error state of a member in a collection
+  const models = (state.models && state.models.slice(0)) || []
+  const currentModel = models.find(model => model[idAttribute] === id)
 
   if (!currentModel) {
     // single model within a collection, but does not yet exist in the collection.
@@ -203,7 +169,7 @@ export default (config) => {
             }
 
             return Object.assign({}, state, {
-              [resourceNameSpace]: setMemberLoading({idAttribute, id, state, resourceNameSpace})
+              models: setMemberLoading({idAttribute, id, state})
             })
           }
           case `${resource}.SHOW_SUCCESS`: {
@@ -220,7 +186,7 @@ export default (config) => {
             return Object.assign({}, state, {
               loading: false,
               loadingError: undefined,
-              models: replaceMember({idAttribute, data, resourceNameSpace, state})
+              models: replaceMemberAttributes({idAttribute, data, state})
             })
           }
           case `${resource}.SHOW_ERROR`: {
@@ -234,7 +200,7 @@ export default (config) => {
             }
 
             return Object.assign({}, state, {
-              models: setMemberLoadingError({state, id, idAttribute, error, resourceNameSpace})
+              models: setMemberLoadingError({state, id, idAttribute, error})
             })
           }
           case `${resource}.ASSIGN_CID`: {
@@ -244,27 +210,46 @@ export default (config) => {
               loadingError: undefined
             }
 
+            if (isSingleModel) {
+              return Object.assign({}, state, data)
+            }
+
             return Object.assign({}, state, {
               loading: false,
               loadingError: undefined,
-              [resourceNameSpace]: replaceMember({data, idAttribute, resourceNameSpace, state})
+              models: replaceMemberAttributes({data, idAttribute, state})
             })
           }
           case `${resource}.CREATE_SUCCESS`: {
             const data = action.response
             const { cId } = action
 
+            if (isSingleModel) {
+              return Object.assign({}, state, {
+                loading: false,
+                loadingError: undefined,
+                attributes: Object.assign({}, state.attributes, data)
+              })
+            }
+
             return Object.assign({}, state, {
               loading: false,
               loadingError: undefined,
-              [resourceNameSpace]: replaceMember({idAttribute, data, resourceNameSpace, state, cId})
+              models: replaceMemberAttributes({idAttribute, data, state, cId})
             })
           }
           case `${resource}.CREATE_ERROR`: {
             const { id, error } = action
 
+            if (isSingleModel) {
+              return Object.assign({}, state, {
+                loading: false,
+                loadingError: error
+              })
+            }
+
             return Object.assign({}, state, {
-              [resourceNameSpace]: setMemberLoadingError({state, id, idAttribute, error, resourceNameSpace})
+              models: setMemberLoadingError({state, id, idAttribute, error})
             })
           }
           case `${resource}.UPDATE`: {
@@ -279,7 +264,7 @@ export default (config) => {
             }
 
             return Object.assign({}, state, {
-              [resourceNameSpace]: setMemberLoading({idAttribute, id, state, resourceNameSpace})
+              models: setMemberLoading({idAttribute, id, state})
             })
           }
           case `${resource}.UPDATE_SUCCESS`: {
@@ -294,7 +279,7 @@ export default (config) => {
             }
 
             return Object.assign({}, state, {
-              models: updateMemberAttributes({idAttribute, data, resourceNameSpace, state})
+              models: updateMemberAttributes({idAttribute, data, state})
             })
           }
           case `${resource}.UPDATE_ERROR`: {
@@ -308,7 +293,7 @@ export default (config) => {
             }
 
             return Object.assign({}, state, {
-              [resourceNameSpace]: setMemberLoadingError({state, id, idAttribute, error, resourceNameSpace})
+              models: setMemberLoadingError({state, id, idAttribute, error})
             })
           }
           case `${resource}.DESTROY_SUCCESS`: {
@@ -317,7 +302,7 @@ export default (config) => {
             if (isSingleModel) { return apiDefaultState }
 
             return Object.assign({}, state, {
-              [resourceNameSpace]: destroyMember({idAttribute, id, resourceNameSpace, state})
+              models: destroyMember({idAttribute, id, state})
             })
           }
           case `${resource}.DESTROY_ERROR`: {
@@ -331,7 +316,7 @@ export default (config) => {
             }
 
             return Object.assign({}, state, {
-              [resourceNameSpace]: setMemberLoadingError({state, id, idAttribute, error, resourceNameSpace})
+              models: setMemberLoadingError({state, id, idAttribute, error})
             })
           }
           default: {
