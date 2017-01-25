@@ -118,7 +118,8 @@ import { railsActions } from 'redux-rails'
 const MyReactComponent = React.createClass({
   propTypes: {
     fetchPosts: React.PropTypes.func,
-    loading: React.PropTypes.bool
+    loading: React.PropTypes.bool,
+    posts: React.PropTypes.array
   },
 
   componentWillMount() {
@@ -130,7 +131,7 @@ const MyReactComponent = React.createClass({
 
     return (
       <ul>
-        {this.props.Posts.map(post) => {
+        {this.props.posts.map(post) => {
           return (
             <li>
               <h2>{post.title}</h2>
@@ -145,6 +146,7 @@ const MyReactComponent = React.createClass({
 
 const mapStateToProps = (state) => {
   return {
+    posts: state.resources.Posts.models,
     loading: state.resources.Posts.loading
   }
 }
