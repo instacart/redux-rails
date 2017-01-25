@@ -50,12 +50,11 @@ const constructfetchOptions = ({railsAction, resource, config, data}) => {
   // options available match request the fetch Request object:
   // https://developer.mozilla.org/en-US/docs/Web/API/Request/Request
   const method = actionMethodMap[railsAction]
-  let options = { method }
+  let options = Object.assign({}, config.fetchParams, { method })
 
   // assume the body is meant to be JSON. Fetch requires you to Stringify JSON
   if (typeof data === 'object' && method !== 'GET') {
     options.body = JSON.stringify(data)
-    options.headers = new Headers({'content-type':'application/json'})
   }
 
   return options
@@ -72,7 +71,10 @@ const fetchResource = ({store, resource, config, data={}, railsAction}) => {
     store.dispatch({ type: `${resource}.ASSIGN_CID`, cId })
   }
 
-  fetch(constructUrl({domain, controller, railsAction, data}), constructfetchOptions({railsAction, resource, data, config}))
+  fetch(
+    constructUrl({domain, controller, railsAction, data}),
+    constructfetchOptions({railsAction, resource, data, config})
+  )
     .then((response) => {
       response.json().then((json) => {
         if(!response.ok) {

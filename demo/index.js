@@ -64,6 +64,11 @@ const apiConfig = {
     User: {
       controller: 'user'
     }
+  },
+  fetchParams: {
+    headers: {
+      'content-type':'application/json'
+    }
   }
 }
 
