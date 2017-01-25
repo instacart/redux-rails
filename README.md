@@ -73,7 +73,7 @@ App.dispatch(railsActions.show({
 
 Update a specific member of a resource collection
 ```
-App.dispatch(railsActions.Update({
+App.dispatch(railsActions.update({
   resource: 'Posts',
   id: 3,
   attributes: {
@@ -87,7 +87,7 @@ App.dispatch(railsActions.Update({
 
 Create a new member in a resource collection
 ```
-App.dispatch(railsActions.Create({
+App.dispatch(railsActions.create({
   resource: 'Posts',
   attributes: {
     title: 'foo',
@@ -100,7 +100,7 @@ App.dispatch(railsActions.Create({
 
 Destroy a specific member inside a resource collection
 ```
-App.dispatch(railsActions.Destroy({
+App.dispatch(railsActions.destroy({
   resource: 'Posts',
   id: 3
 }))
