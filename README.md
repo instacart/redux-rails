@@ -153,7 +153,7 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    fetchPosts: bindActionCreators(Object.assign({}, () => { railsActions.index({ resource: 'Posts'}) }), dispatch)
+    fetchPosts: bindActionCreators(() => { railsActions.index({ resource: 'Posts'}) }, dispatch)
   }
 }
 

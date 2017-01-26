@@ -20,6 +20,17 @@ const findModel = ({idAttribute, id, cId, state}) => {
   })
 }
 
+const collectionWithAttributesOnMembers = ({models=[], idAttribute}) => {
+  // returns new collection with members containing attributes
+  // ie. [{ id: 123, foo: 'bar' }] -> [{ id: 123, loading: false, loadingError: undefined, attributes: { id: 123, foo: 'bar' } }]
+  return models.map((model) => {
+    return Object.assign({}, apiDefaultState, {
+      id: model[idAttribute],
+      attributes: model
+    })
+  })
+}
+
 const collectionWithNewModel = ({state, model}) => {
   // returns new array with model inserted
   const models = state.models || []
@@ -146,7 +157,7 @@ export default (config) => {
             return Object.assign({}, state, {
               loading: false,
               loadingError: undefined,
-              models: action.response
+              models: collectionWithAttributesOnMembers({models: action.response, idAttribute})
             })
           }
           case `${resource}.INDEX_ERROR`: {
