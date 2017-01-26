@@ -4,14 +4,7 @@ const path = require('path');
 module.exports = {
   module: {
    loaders: [
-     {
-       test: /\.(js|jsx)$/,
-       loader: ["babel-loader"],
-       exclude: /node_modules/,
-       query: {
-          presets: ['es2015', 'stage-3', 'react']
-      }
-     }
+     { test: /\.js$/, loaders: ['babel-loader'], exclude: /node_modules/ }
    ]
   },
   entry: {
