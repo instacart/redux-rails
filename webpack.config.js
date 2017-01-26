@@ -18,8 +18,8 @@ module.exports = {
     main: "./src/index.js"
   },
   output: {
-    path: "dist",
-    filename: "redux-rails.js"
+    library: 'Redux-Rails',
+    libraryTarget: 'umd'
   },
   devtool: "cheap-module-eval-source-map"
 }

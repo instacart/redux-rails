@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "start": "webpack --process --watch",
-    "build": "webpack --progress --config webpack.config.js"
+    "build": "webpack --progress --config webpack.config.js src/index.js dist/redux-rails.js"
   },
   "author": "Dominic Cocchiarella",
   "license": "MIT",
