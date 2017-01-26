@@ -1,5 +1,5 @@
 import { compose, combineReducers, createStore, applyMiddleware } from 'redux'
-import { middleWare, apiReducer, railsActions } from 'redux-rails'
+import { middleWare, apiReducer, railsActions, combineConfigs } from 'redux-rails'
 
 const counterReducerStartingState = {
   value: 0
@@ -72,17 +72,56 @@ const apiConfig = {
   }
 }
 
-// redux store
+const defaultConfig = {
+  domain: 'http://localhost:3000/',
+  fetchParams: {
+    headers: {
+      'content-type':'application/json'
+    }
+  }
+}
 
+const commentsConfig = {
+  resources: {
+    Comments: {
+      controller: 'comments'
+    }
+  }
+}
+
+const photosConfig = {
+  resources: {
+    Photos: {
+      controller: 'photos'
+    }
+  }
+}
+
+const resourcesConfig = combineConfigs(
+  defaultConfig,
+  commentsConfig,
+  photosConfig
+)
+
+const reduxRailsConfig = combineConfigs(
+  defaultConfig,
+  apiConfig,
+  commentsConfig,
+  photosConfig
+)
+
+
+// redux store
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 const siteApp = window.siteApp = createStore(
     combineReducers({
     counter: counterReducer,
-    models: apiReducer(apiConfig)
+    models: apiReducer(apiConfig),
+    resources: apiReducer(resourcesConfig)
   }),
   {},
   composeEnhancers(
-    applyMiddleware(middleWare(apiConfig))
+    applyMiddleware(middleWare(reduxRailsConfig))
   )
 );
 
@@ -104,6 +143,13 @@ window.setTimeout(() => {
     resource: 'Posts',
     id: 3
   }))
+
+  siteApp.dispatch(railsActions.show({
+    resource: 'Comments',
+    id: 15
+  }))
+
+  siteApp.dispatch(railsActions.index({resource: 'Photos'}))
 
   // siteApp.dispatch({
   //   type: 'User.SHOW'

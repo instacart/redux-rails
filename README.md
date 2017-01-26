@@ -257,14 +257,23 @@ These are the options sent to the `Fetch` call when making any call to your api.
 This is where you would set your headers or credentials, for example.
 
 ### Using multiple configs
-Multiple configs can be used throughout your Redux store's hierarchy.
+Multiple configs can be used throughout your Redux store's hierarchy. Use combineConfigs to do this.
 
 ```
 import { createStore, applyMiddleware } from 'redux'
-import { middleWare, apiReducer } from 'redux-rails'
+import { middleWare, apiReducer, combineConfigs } from 'redux-rails'
+
+// these settings will be the fallback for all configs
+const defaultConfig = {
+  domain: 'https://your-site-url.com/api/',
+  fetchParams: {
+    headers: {
+      'content-type':'application/json'
+    }
+  }
+}
 
 const postsConfig = {
-  domain: 'https://your-site-url.com/api/',
   resources: {
     Posts: {
       controller: 'posts'
@@ -281,6 +290,12 @@ const commentsConfig = {
   }
 }
 
+const reduxRailsConfigs = combineConfigs(
+  defaultConfig
+  postsConfig,
+  commentsConfig
+)
+
 const App = createStore(
   combineReducers({
     posts: apiReducer(postsConfig),
@@ -288,7 +303,7 @@ const App = createStore(
   }),
   {},
   composeEnhancers(
-    applyMiddleware(middleWare(postsConfig, commentsConfig))
+    applyMiddleware(middleWare(reduxRailsConfigs))
   )
 )
 ```

@@ -1,9 +1,11 @@
-import middleWare   from './middleWare'
-import apiReducer   from './apiReducer'
-import railsActions from './railsActions'
+import middleWare     from './middleWare'
+import apiReducer     from './apiReducer'
+import railsActions   from './railsActions'
+import combineConfigs from './combineConfigs'
 
 export {
-  middleWare,
   apiReducer,
+  combineConfigs,
+  middleWare,
   railsActions
 }
