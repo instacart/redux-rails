@@ -1,32 +1,37 @@
 // index, show, update, create, destroy
 export default {
-  index: ({resource}) => {
+  index: ({resource, controller}) => {
     return {
-      type: `${resource}.INDEX`
+      type: `${resource}.INDEX`,
+      controller
     }
   },
-  show: ({id, resource}) => {
+  show: ({id, resource, controller}) => {
     return {
       type: `${resource}.SHOW`,
-      data: { id }
+      data: { id },
+      controller
     }
   },
-  update: ({id, attributes, resource}) => {
+  update: ({id, attributes, resource, controller}) => {
     return {
       type: `${resource}.UPDATE`,
-      data: Object.assign({}, { id }, attributes)
+      data: Object.assign({}, { id }, attributes),
+      controller
     }
   },
-  create: ({resource, attributes}) => {
+  create: ({resource, attributes, controller}) => {
     return {
       type: `${resource}.CREATE`,
-      data: attributes
+      data: attributes,
+      controller
     }
   },
-  destroy: ({id, resource}) => {
+  destroy: ({id, resource, controller}) => {
     return {
       type: `${resource}.DESTROY`,
-      data: { id }
+      data: { id },
+      controller
     }
   }
 }

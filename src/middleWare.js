@@ -60,10 +60,10 @@ const constructfetchOptions = ({railsAction, resource, config, data}) => {
   return options
 }
 
-const fetchResource = ({store, resource, config, data={}, railsAction}) => {
+const fetchResource = ({store, resource, config, data={}, railsAction, controllerOverride}) => {
   const resourceConfig = config.resources[resource]
   const domain = resourceConfig.domain || config.domain
-  const controller = resourceConfig.controller
+  const controller = controllerOverride || resourceConfig.controller
   let cId
 
   if (railsAction === 'CREATE') {
@@ -108,9 +108,9 @@ export default (config) => {
   return (store) => (next) => {
     return (action) => {
       const [ resource, railsAction ] = action.type.split('.')
-      const { data } = action
+      const { data, controller } = action
       if (config.resources[resource] && actionMethodMap[railsAction]) {
-        fetchResource({store, resource, config, data, railsAction})
+        fetchResource({store, resource, config, data, railsAction, controllerOverride: controller})
       }
 
       return next(action)

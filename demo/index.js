@@ -145,6 +145,12 @@ window.setTimeout(() => {
   }))
 
   siteApp.dispatch(railsActions.show({
+    resource: 'Posts',
+    id: 5,
+    controller: 'foo_posts'
+  }))
+
+  siteApp.dispatch(railsActions.show({
     resource: 'Comments',
     id: 15
   }))
