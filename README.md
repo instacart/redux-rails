@@ -133,10 +133,11 @@ const MyReactComponent = React.createClass({
     return (
       <ul>
         {this.props.posts.map(post) => {
+          let currentPost = post.attributes
           return (
-            <li>
-              <h2>{post.title}</h2>
-              <p>{post.body}</p>
+            <li key={`${post.id`}}>
+              <h2>{currentPost.title}</h2>
+              <p>{currentPost.body}</p>
             </li>
           )
         }}
