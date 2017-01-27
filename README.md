@@ -1,6 +1,6 @@
 Redux Rails
 =========================
-[![Travis CI](https://travis-ci.org/instacart/TrueTime.swift.svg?branch=master)](https://travis-ci.org/instacart/TrueTime.swift)
+[![Build Status](https://travis-ci.com/instacart/redux-rails.svg?token=QDSMJH3hiak5dQzToZJx&branch=master)](https://travis-ci.com/instacart/redux-rails)
 
 ## Basic Usage
 
