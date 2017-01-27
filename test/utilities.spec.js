@@ -1,0 +1,109 @@
+import {
+  determineResourceType,
+  getResourceNameSpace,
+  getResourceIdAttribute,
+  getUniqueClientId
+} from '../src/utilities'
+
+describe('utilities', () => {
+
+  describe('determineResourceType', () => {
+    it('should return collection for plural controller', () => {
+      expect(determineResourceType({controller: 'posts'})).toEqual('collection')
+    })
+
+    it('should return member for singular controller', () => {
+      expect(determineResourceType({controller: 'post'})).toEqual('member')
+    })
+  })
+
+  describe('getResourceNameSpace', () => {
+    const config1 = {
+      domain: 'http://localhost:3000/',
+      resources: {
+        Posts: {
+          controller: 'posts'
+        },
+        User: {
+          controller: 'user'
+        }
+      }
+    }
+    const config2 = {
+      domain: 'http://localhost:3000/',
+      resources: {
+        Posts: {
+          controller: 'retailers'
+        },
+        User: {
+          controller: 'users'
+        },
+        Cats: {
+          controller: 'cat'
+        }
+      }
+    }
+
+    it('should return models for plural controller', () => {
+      expect(getResourceNameSpace({config: config1, resource: 'Posts'})).toEqual('models')
+      expect(getResourceNameSpace({config: config2, resource: 'Posts'})).toEqual('models')
+      expect(getResourceNameSpace({config: config2, resource: 'User'})).toEqual('models')
+    })
+
+    it('should return attributes for singular controller', () => {
+      expect(getResourceNameSpace({config: config1, resource: 'User'})).toEqual('attributes')
+      expect(getResourceNameSpace({config: config2, resource: 'Cats'})).toEqual('attributes')
+    })
+  })
+
+  describe('getResourceIdAttribute', () => {
+    const config = {
+      domain: 'http://localhost:3000/',
+      resources: {
+        Posts: {
+          controller: 'posts',
+          idAttribute: '_id'
+        },
+        User: {
+          controller: 'user',
+          idAttribute: '_id___1234%%@@_'
+        },
+        Photos: {
+          controller: 'photo'
+        }
+      }
+    }
+
+    it('should return default id attribute', () => {
+      expect(getResourceIdAttribute({config, resource: 'Photos'})).toEqual('id')
+    })
+
+    it('should return custom id attribute', () => {
+      expect(getResourceIdAttribute({config, resource: 'Posts'})).toEqual('_id')
+      expect(getResourceIdAttribute({config, resource: 'User'})).toEqual('_id___1234%%@@_')
+    })
+  })
+
+  describe('getUniqueClientId', () => {
+    it('should return +1 ints', () => {
+      expect(getUniqueClientId()).toEqual(1)
+      expect(getUniqueClientId()).toEqual(2)
+      expect(getUniqueClientId()).toEqual(3)
+    })
+
+    it('should return unique ints', () => {
+      const int1 = getUniqueClientId()
+      const int2 = getUniqueClientId()
+      const int3 = getUniqueClientId()
+      const int4 = getUniqueClientId()
+
+      expect(int1).not.toEqual(int2)
+      expect(int1).not.toEqual(int3)
+      expect(int1).not.toEqual(int4)
+      expect(int2).not.toEqual(int3)
+      expect(int2).not.toEqual(int4)
+      expect(int3).not.toEqual(int4)
+    })
+  })
+
+})

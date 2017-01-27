@@ -1,4 +1,4 @@
-let uniqueClientId = 1
+let uniqueClientId = 0
 
 export function determineResourceType({controller}) {
   // resource type is determined by wether or not the controller name is plural
