@@ -1,5 +1,6 @@
 Redux Rails
 =========================
+[![Travis CI](https://travis-ci.org/instacart/TrueTime.swift.svg?branch=master)](https://travis-ci.org/instacart/TrueTime.swift)
 
 ## Basic Usage
 
