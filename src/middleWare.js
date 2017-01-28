@@ -81,7 +81,8 @@ const fetchResource = ({store, resource, config, data={}, railsAction, controlle
           return store.dispatch({
             type: `${resource}.${railsAction}_ERROR`,
             error: json.error || { message: response.statusText },
-            id: data.id
+            id: data.id,
+            cId
           })
         }
 

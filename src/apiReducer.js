@@ -114,9 +114,11 @@ const setMemberLoading = ({idAttribute, id, state}) => {
   return collectionWithUpdatedModel({idAttribute, id, state, updatedModel: model})
 }
 
-const setMemberLoadingError = ({idAttribute, id, state, error}) => {
+const setMemberLoadingError = ({idAttribute, id, cId, state, error}) => {
   // this function sets the loading error state of a member in a collection
-  const currentModel = findModel({idAttribute, id, state})
+  const currentModel = findModel({idAttribute, id, cId, state})
+
+  if (!currentModel && !id) { return state.models.slice(0) }
 
   if (!currentModel) {
     // model does not yet exist in models array -- create it.
@@ -129,7 +131,7 @@ const setMemberLoadingError = ({idAttribute, id, state, error}) => {
   }
 
   // single model within a collection -- find it and set its loading state.
-  return collectionWithUpdatedModel({idAttribute, id, state, updatedModel: {
+  return collectionWithUpdatedModel({idAttribute, id, cId, state, updatedModel: {
     loading: false,
     loadingError: error
   }})
@@ -250,7 +252,7 @@ export default (config) => {
             })
           }
           case `${resource}.CREATE_ERROR`: {
-            const { id, error } = action
+            const { id, cId, error } = action
 
             if (isSingleModel) {
               return Object.assign({}, state, {
@@ -260,7 +262,7 @@ export default (config) => {
             }
 
             return Object.assign({}, state, {
-              models: setMemberLoadingError({state, id, idAttribute, error})
+              models: setMemberLoadingError({state, id, cId, idAttribute, error})
             })
           }
           case `${resource}.UPDATE`: {

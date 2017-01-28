@@ -10,7 +10,7 @@
   "scripts": {
     "start": "webpack --process --watch",
     "build": "npm test && webpack --progress --config webpack.config.js src/index.js dist/redux-rails.js",
-    "test": "jest",
+    "test": "jest --coverage",
     "test:watch": "npm test -- --watch"
   },
   "author": "Dominic Cocchiarella",

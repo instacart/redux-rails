@@ -1,4 +1,5 @@
 import { apiReducer, railsActions } from 'redux-rails'
+import { getUniqueClientId } from '../src/utilities'
 
 const standardConfig = {
   domain: 'http://localhost:3000/',
@@ -455,6 +456,206 @@ describe('apiReducer', () => {
         )
       })
 
+      it('should set the loadingerror on the the member on SHOW_ERROR', () => {
+        const response = {
+          '@@_id_': 4135,
+          title: 'Three weird tricks for testing Redux Rails',
+          body: '1: use Jest. 2: profit. 3: maybe this should only be 2 weird tricks...'
+        }
+
+        customIdReducerState = customIdReducer(customIdReducerState, {
+          type: 'Posts.SHOW_ERROR',
+          id: 4135,
+          error: {
+            message: 'uh oh, this is probably a bad thing,'
+          }
+        })
+
+        expect(customIdReducerState).toEqual(
+          {
+            Posts: {
+              loading: false,
+              loadingError: undefined,
+              models: [{
+                '@@_id_': 4135,
+                loading: false,
+                loadingError: {
+                  message: 'uh oh, this is probably a bad thing,'
+                },
+                attributes: response
+              }]
+            }
+          }
+        )
+      })
+
     })
+  })
+
+  describe('CREATE actions', () => {
+    const createReducer = apiReducer(standardConfig)
+    let createReducerState = {}
+
+
+    it('should create a new member and assign it a cId', () => {
+      const cId = getUniqueClientId()
+
+      createReducerState = createReducer(createReducerState, {
+        type: 'Posts.ASSIGN_CID', cId
+      })
+
+      expect(createReducerState).toEqual(
+        {
+          Posts: {
+            loading: false,
+            loadingError: undefined,
+            models: [
+              {
+                cId,
+                loading: false,
+                loadingError: undefined
+              }
+            ]
+          },
+          User: {
+            loading: false,
+            loadingError: undefined
+          }
+        }
+      )
+    })
+
+    it('should set the attributes of the member in the collection on success of CREATE call', () => {
+      const response = {
+        id: 4135,
+        title: 'Three weird tricks for testing Redux Rails',
+        body: '1: use Jest. 2: profit. 3: maybe this should only be 2 weird tricks...'
+      }
+
+      const cId = getUniqueClientId()
+
+      createReducerState = createReducer({}, {
+        type: 'Posts.ASSIGN_CID', cId
+      })
+
+      createReducerState = createReducer(createReducerState, {
+        type: 'Posts.CREATE_SUCCESS',
+        cId,
+        response
+      })
+
+      expect(createReducerState).toEqual(
+        {
+          Posts: {
+            loading: false,
+            loadingError: undefined,
+            models: [
+              {
+                cId,
+                id: response.id,
+                loading: false,
+                loadingError: undefined,
+                attributes: response
+              }
+            ]
+          },
+          User: {
+            loading: false,
+            loadingError: undefined
+          }
+        }
+      )
+    })
+
+    it('should set the loading error of the member in the collection on CREATE_ERROR', () => {
+      const cId = getUniqueClientId()
+
+      createReducerState = createReducer({}, {
+        type: 'Posts.ASSIGN_CID', cId
+      })
+
+      createReducerState = createReducer(createReducerState, {
+        type: 'Posts.CREATE_ERROR',
+        cId,
+        error: {
+          message: 'This did not go well'
+        }
+      })
+
+      expect(createReducerState).toEqual(
+        {
+          Posts: {
+            loading: false,
+            loadingError: undefined,
+            models: [
+              {
+                cId,
+                loading: false,
+                loadingError: {
+                  message: 'This did not go well'
+                }
+              }
+            ]
+          },
+          User: {
+            loading: false,
+            loadingError: undefined
+          }
+        }
+      )
+    })
+
+    describe('CREATE actions with custom idAttribute', () => {
+      const customIdConfig = {
+        domain: 'http://localhost:3000/',
+        resources: {
+          Posts: {
+            controller: 'posts',
+            idAttribute: '@@_id_'
+          }
+        }
+      }
+      const createReducer = apiReducer(customIdConfig)
+      let createReducerState = {}
+
+      it('should set the attributes of the member in the collection on success of CREATE call with custom id attribute', () => {
+        const response = {
+          '@@_id_': 4135,
+          title: 'Three weird tricks for testing Redux Rails',
+          body: '1: use Jest. 2: profit. 3: maybe this should only be 2 weird tricks...'
+        }
+
+        const cId = getUniqueClientId()
+
+        createReducerState = createReducer({}, {
+          type: 'Posts.ASSIGN_CID', cId
+        })
+
+        createReducerState = createReducer(createReducerState, {
+          type: 'Posts.CREATE_SUCCESS',
+          cId,
+          response
+        })
+
+        expect(createReducerState).toEqual(
+          {
+            Posts: {
+              loading: false,
+              loadingError: undefined,
+              models: [
+                {
+                  cId,
+                  '@@_id_': response['@@_id_'],
+                  loading: false,
+                  loadingError: undefined,
+                  attributes: response
+                }
+              ]
+            }
+          }
+        )
+      })
+    })
+
   })
 })
