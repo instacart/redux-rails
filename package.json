@@ -8,7 +8,7 @@
     "url": "https://github.com/instacart/redux-rails"
   },
   "scripts": {
-    "start": "webpack --process --watch",
+    "start": "webpack --progress --watch --config webpack.config.js src/index.js dist/redux-rails.js",
     "build": "npm test && webpack --progress --config webpack.config.js src/index.js dist/redux-rails.js",
     "test": "jest --coverage",
     "test:watch": "npm test -- --watch"
@@ -26,7 +26,7 @@
     "babel-preset-react": "^6.16.0",
     "babel-preset-stage-3": "^6.17.0",
     "jest": "^18.1.0",
-    "webpack": "^1.14.0"
+    "webpack": "^2.2.0"
   },
   "jest": {
     "testRegex": "(/test/.*\\.spec.js)$"
