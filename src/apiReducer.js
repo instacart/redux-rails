@@ -67,7 +67,7 @@ const replaceMemberAttributes = ({idAttribute, data, state, cId}) => {
 
   // model already exists in model array -- replace its attributes.
   return collectionWithUpdatedModel({idAttribute, id, cId, state, updatedModel: {
-    [idAttribute]: data.id,
+    [idAttribute]: data[idAttribute],
     loading: false,
     loadingError: undefined,
     attributes: data
@@ -105,12 +105,12 @@ const setMemberLoading = ({idAttribute, id, state}) => {
 
   if (!currentModel) {
     // model does not yet exist in models array -- create it.
-    model = { [idAttribute]: id, loading: true }
+    model = { [idAttribute]: id, loading: true, loadingError: undefined }
     return collectionWithNewModel({state, model})
   }
 
   // model already exists in model array -- update its loading state.
-  model = { loading: true }
+  model = { loading: true, loadingError: undefined }
   return collectionWithUpdatedModel({idAttribute, id, state, updatedModel: model})
 }
 
