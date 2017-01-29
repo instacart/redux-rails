@@ -122,12 +122,11 @@ const setMemberLoadingError = ({idAttribute, id, cId, state, error}) => {
 
   if (!currentModel) {
     // model does not yet exist in models array -- create it.
-    model = {
+    return collectionWithNewModel({state, model: {
       [idAttribute]: id,
       loadingError: error,
       loading: false
-    }
-    return collectionWithNewModel({state, model})
+    }})
   }
 
   // single model within a collection -- find it and set its loading state.
@@ -137,13 +136,42 @@ const setMemberLoadingError = ({idAttribute, id, cId, state, error}) => {
   }})
 }
 
+const getInitialState = ({config, resource}) => {
+  // converts models/attributes passed in with the config to match
+  // redux rais internal models/collections
+  // If not models/attributes present, returns apiDefaultState
+  const resourceNameSpace = getResourceNameSpace({config, resource})
+  const isSingleModel = resourceNameSpace === 'attributes'
+  const resourceConfig = config.resources[resource] || {}
+  const idAttribute = getResourceIdAttribute({config, resource})
+
+  if (!resourceConfig[resourceNameSpace]) {
+    // no attributes or models given with initial config
+    return apiDefaultState
+  }
+
+  if (isSingleModel) {
+    return Object.assign({}, apiDefaultState, {
+      [idAttribute]: resourceConfig[idAttribute] || resourceConfig.attributes[idAttribute],
+      attributes: resourceConfig.attributes
+    })
+  }
+
+  return Object.assign({}, apiDefaultState, {
+    models: collectionWithAttributesOnMembers({
+      models: resourceConfig.models,
+      idAttribute
+    })
+  })
+
+}
+
 
 // main reducer
 export default (config) => {
     const reducers = {}
-
     Object.keys(config.resources).forEach((resource) => {
-      reducers[resource] = (state = apiDefaultState, action) => {
+      reducers[resource] = (state = getInitialState({config, resource}), action) => {
         const resourceNameSpace = getResourceNameSpace({config, resource})
         const isSingleModel = resourceNameSpace === 'attributes'
         const idAttribute = getResourceIdAttribute({config, resource})
@@ -307,6 +335,21 @@ export default (config) => {
 
             return Object.assign({}, state, {
               models: setMemberLoadingError({state, id, idAttribute, error})
+            })
+          }
+          case `${resource}.DESTROY`: {
+            const data = action.data || {}
+            const { id } = data
+
+            if (isSingleModel) {
+              return Object.assign({}, state, {
+                loading: true,
+                loadingError: undefined
+              })
+            }
+
+            return Object.assign({}, state, {
+              models: setMemberLoading({idAttribute, id, state})
             })
           }
           case `${resource}.DESTROY_SUCCESS`: {

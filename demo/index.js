@@ -84,7 +84,12 @@ const defaultConfig = {
 const commentsConfig = {
   resources: {
     Comments: {
-      controller: 'comments'
+      controller: 'comments',
+      models: [
+        {id: 1, val: 121},
+        {id: 2, val: 122},
+        {id: 3, val: 123}
+      ]
     }
   }
 }
