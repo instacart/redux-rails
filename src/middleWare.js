@@ -84,7 +84,7 @@ const fetchResource = ({store, resource, config, data={}, railsAction, controlle
           return store.dispatch({
             type: `${resource}.${railsAction}_ERROR`,
             error: json.error || { message: response.statusText },
-            id: data[idAttribute],
+            id: json[idAttribute] || data.id,
             cId
           })
         }
@@ -92,7 +92,7 @@ const fetchResource = ({store, resource, config, data={}, railsAction, controlle
         store.dispatch({
           type: `${resource}.${railsAction}_SUCCESS`,
           cId,
-          id: data[idAttribute],
+          id: json[idAttribute] || data.id,
           response: parseResult({
             json,
             resource,
@@ -104,7 +104,7 @@ const fetchResource = ({store, resource, config, data={}, railsAction, controlle
     })
     .catch((error) => {
       const type = `${resource}.${railsAction}_ERROR`
-      store.dispatch({ type, error, id: data[idAttribute], cId })
+      store.dispatch({ type, error, id: data.id, cId })
     })
 }
 
