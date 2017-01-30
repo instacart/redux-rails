@@ -29,6 +29,7 @@
     "webpack": "^2.2.0"
   },
   "jest": {
-    "testRegex": "(/test/.*\\.spec.js)$"
+    "testRegex": "(/test/.*\\.spec.js)$",
+    "collectCoverageFrom": ["src/**"]
   }
 }
