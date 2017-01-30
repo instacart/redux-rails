@@ -42,17 +42,6 @@ const createNewCollection = ({metaData, models=[]}) => {
   return Object.assign({}, apiDefaultState, metaData, { models })
 }
 
-const collectionWithAttributesOnMembers = ({models=[], idAttribute}) => {
-  // returns new collection with members containing attributes
-  // ie. [{ id: 123, foo: 'bar' }] -> [{ id: 123, loading: false, loadingError: undefined, attributes: { id: 123, foo: 'bar' } }]
-  return models.map((model) => {
-    return Object.assign({}, apiDefaultState, {
-      id: model[idAttribute],
-      attributes: model
-    })
-  })
-}
-
 const collectionWithNewModel = ({state, model}) => {
   // returns new array with model inserted
   const models = state.models || []
@@ -63,7 +52,7 @@ const collectionWithNewModel = ({state, model}) => {
   ]
 }
 
-const collectionWithUpdatedModel = ({idAttribute, id, cId, state, updatedModel}) => {
+const collectionWithUpdatedModel = ({id, cId, state, updatedModel}) => {
   // returns collection (models array) with model's attributes updated
   const models = (state.models && state.models.slice(0)) || []
   let hasId
@@ -81,72 +70,68 @@ const collectionWithUpdatedModel = ({idAttribute, id, cId, state, updatedModel})
   })
 }
 
-const replaceMemberAttributes = ({id, idAttribute, data, metaData, state, cId}) => {
+const replaceMemberAttributes = ({id, data, metaData, state, cId}) => {
   const currentModel = findModel({id, cId, state})
 
   if (!currentModel) {
     // model does not yet exist in models array -- create it.
     return collectionWithNewModel({state,
-      model: createNewModel({id, cId, idAttribute, metaData})
+      model: createNewModel({id, cId, metaData})
     })
   }
 
   // model already exists in model array -- replace its attributes.
-  return collectionWithUpdatedModel({idAttribute, id, cId, state,
-    updatedModel: createNewModel({id, cId, idAttribute, metaData, attributes: data})
+  return collectionWithUpdatedModel({id, cId, state,
+    updatedModel: createNewModel({id, cId, metaData, attributes: data})
   })
 }
 
-const updateMemberAttributes = ({idAttribute, data, state}) => {
-  const id = data[idAttribute]
+const updateMemberAttributes = ({id, data, state}) => {
   const currentModel = findModel({id, state})
 
   if (!currentModel) {
     // model does not yet exist in models array -- create it.
     return collectionWithNewModel({state,
-      model: Object.assign({}, apiDefaultState, {
-        [idAttribute]: id,
-        attributes: data
-      })
+      model: createNewModel({id, attributes: data})
     })
   }
 
   // model already exists in model array -- update its attributes.
-  return collectionWithUpdatedModel({idAttribute, id, state,
-    updatedModel: createNewModel({id, idAttribute,
+  return collectionWithUpdatedModel({id, state,
+    updatedModel: createNewModel({id,
       attributes: Object.assign({}, currentModel.attributes, data)
     }
   )})
 
 }
 
-const destroyMember = ({idAttribute, id, state}) => {
-  return state.models.filter(model => model[idAttribute] !== id)
+const destroyMember = ({id, state}) => {
+  return state.models.filter(model => model.id !== id)
 }
 
-const setMemberLoading = ({idAttribute, id, cId, state}) => {
+const setMemberLoading = ({id, cId, state}) => {
   // sets the loading state of a member within a collection
   const currentModel = findModel({id, cId, state})
 
   if (!currentModel) {
     // model does not yet exist in models array -- create it.
     return collectionWithNewModel({state,
-      model: createNewModel({id, cId, idAttribute,
-        metaData: {loading: true}
+      model: createNewModel({id, cId,
+        metaData: { loading: true }
       })
     })
   }
 
   // model already exists in model array -- update its loading state.
-  return collectionWithUpdatedModel({idAttribute, id, cId, state,
-    updatedModel: createNewModel({id, cId, idAttribute,
+  return collectionWithUpdatedModel({id, cId, state,
+    updatedModel: createNewModel({id, cId,
       metaData: { loading: true },
       attributes: currentModel.attributes
     }
   )})
 }
 
-const setMemberLoadingError = ({idAttribute, id, cId, state, error}) => {
+const setMemberLoadingError = ({id, cId, state, error}) => {
   // this function sets the loading error state of a member in a collection
   const currentModel = findModel({id, cId, state})
 
@@ -155,15 +140,15 @@ const setMemberLoadingError = ({idAttribute, id, cId, state, error}) => {
   if (!currentModel) {
     // model does not yet exist in models array -- create it.
     return collectionWithNewModel({state,
-      model: createNewModel({id, idAttribute,
+      model: createNewModel({id,
         metaData: { loadingError: error }
       })
     })
   }
 
   // single model within a collection -- find it and set its loading state.
-  return collectionWithUpdatedModel({idAttribute, id, state, cId,
-    updatedModel: createNewModel({...currentModel, idAttribute,
+  return collectionWithUpdatedModel({id, state, cId,
+    updatedModel: createNewModel({...currentModel,
       metaData: { loadingError: error }
     }
   )})
@@ -220,7 +205,10 @@ export default (config) => {
           }
           case `${resource}.INDEX_SUCCESS`: {
             return Object.assign({}, state, createNewCollection({
-              models: collectionWithAttributesOnMembers({models: action.response, idAttribute})
+              models: action.response.map(model => createNewModel({
+                id: model[idAttribute],
+                attributes: model
+              }))
             }))
           }
           case `${resource}.INDEX_ERROR`: {
@@ -238,13 +226,14 @@ export default (config) => {
             const { id } = data
 
             if (isSingleModel) {
-              return createNewModel({...state,
-                metaData: { loading: true }
+              return createNewModel({
+                metaData: { loading: true },
+                attributes: state.attributes
               })
             }
 
             return Object.assign({}, state, {
-              models: setMemberLoading({idAttribute, id, state})
+              models: setMemberLoading({id, state})
             })
           }
           case `${resource}.SHOW_SUCCESS`: {
@@ -252,30 +241,29 @@ export default (config) => {
             const data = action.response
 
             if (isSingleModel) {
-              return createNewModel({...state,
-                metaData: { loading: false },
-                attributes: data
+              return createNewModel({id,
+                attributes: Object.assign({}, state.attributes, data)
               })
             }
 
             return Object.assign({}, state, createNewCollection({
-              models: replaceMemberAttributes({id, idAttribute, data, state, metaData: {
-                loading: false
-              }})
+              models: replaceMemberAttributes({id, data, state,
+                metaData: { loading: false }
+              })
             }))
           }
           case `${resource}.SHOW_ERROR`: {
             const { id, error } = action
 
             if (isSingleModel) {
-              return Object.assign({}, state, {
-                loading: false,
-                loadingError: error
+              return createNewModel({id,
+                attributes: Object.assign({}, state.attributes),
+                metaData: { loadingError: error }
               })
             }
 
             return Object.assign({}, state, {
-              models: setMemberLoadingError({state, id, idAttribute, error})
+              models: setMemberLoadingError({state, id, error})
             })
           }
           case `${resource}.ASSIGN_CID`: {
@@ -286,13 +274,11 @@ export default (config) => {
             }
 
             if (isSingleModel) {
-              return Object.assign({}, state, data)
+              return createNewModel({cId})
             }
 
-            return Object.assign({}, state, {
-              loading: false,
-              loadingError: undefined,
-              models: replaceMemberAttributes({data, cId, idAttribute, state})
+            return createNewCollection({
+              models: replaceMemberAttributes({data, cId, state})
             })
           }
           case `${resource}.CREATE_SUCCESS`: {
@@ -300,31 +286,26 @@ export default (config) => {
             const { cId, id } = action
 
             if (isSingleModel) {
-              return Object.assign({}, state, {
-                loading: false,
-                loadingError: undefined,
+              return createNewModel({id, cId,
                 attributes: Object.assign({}, state.attributes, data)
               })
             }
 
-            return Object.assign({}, state, {
-              loading: false,
-              loadingError: undefined,
-              models: replaceMemberAttributes({idAttribute, data, state, id, cId})
+            return createNewCollection({
+              models: replaceMemberAttributes({data, state, id, cId})
             })
           }
           case `${resource}.CREATE_ERROR`: {
             const { id, cId, error } = action
 
             if (isSingleModel) {
-              return Object.assign({}, state, {
-                loading: false,
-                loadingError: error
+              return createNewModel({id, cId,
+                metaData: { loadingError: error }
               })
             }
 
             return Object.assign({}, state, {
-              models: setMemberLoadingError({state, id, cId, idAttribute, error})
+              models: setMemberLoadingError({state, id, cId, error})
             })
           }
           case `${resource}.UPDATE`: {
@@ -332,53 +313,52 @@ export default (config) => {
             const { id } = data
 
             if (isSingleModel) {
-              return Object.assign({}, state, {
-                loading: true,
-                loadingError: undefined
+              return createNewModel({id,
+                metaData: { loadingError: error },
+                attributes: state.attributes
               })
             }
 
             return Object.assign({}, state, {
-              models: setMemberLoading({idAttribute, id, state})
+              models: setMemberLoading({id, state})
             })
           }
           case `${resource}.UPDATE_SUCCESS`: {
+            const { id } = action
             const data = action.response
 
             if (isSingleModel) {
-              return Object.assign({}, state, {
-                loading: false,
-                loadingError: undefined,
+              return createNewModel({id,
                 attributes: Object.assign({}, state.attributes, data)
               })
             }
 
             return Object.assign({}, state, {
-              models: updateMemberAttributes({idAttribute, data, state})
+              models: updateMemberAttributes({id, data, state})
             })
           }
           case `${resource}.UPDATE_ERROR`: {
             const { id, error } = action
 
             if (isSingleModel) {
-              return Object.assign({}, state, {
-                loading: false,
-                loadingError: error
+              return createNewModel({id,
+                attributes: state.attributes,
+                metaData: { loadingError: error }
               })
             }
 
             return Object.assign({}, state, {
-              models: setMemberLoadingError({state, id, idAttribute, error})
+              models: setMemberLoadingError({state, id, error})
             })
           }
           case `${resource}.DESTROY`: {
             const data = action.data || {}
-            const { id } = data
+            const id = data.id || state.id
 
             if (isSingleModel) {
-              return Object.assign({}, state, {
-                loading: true,
-                loadingError: undefined
+              return createNewModel({id,
+                attributes: state.attributes,
+                metaData: { loading: true }
               })
             }
 
@@ -389,7 +369,9 @@ export default (config) => {
           case `${resource}.DESTROY_SUCCESS`: {
             const { id } = action
 
-            if (isSingleModel) { return apiDefaultState }
+            if (isSingleModel) {
+              return null
+            }
 
             return Object.assign({}, state, {
               models: destroyMember({idAttribute, id, state})
@@ -411,7 +393,7 @@ export default (config) => {
           }
           case `${resource}.SET_LOADING`: {
             // generally loading state is set in the base rails action,
-            // but this is useufl for resources being created on client
+            // but this is useful for resources being created on client
             const { id, cId } = action
 
             if (isSingleModel) {

@@ -1055,10 +1055,7 @@ describe('apiReducer', () => {
               {loading: false, loadingError: undefined, id: 6, attributes: {id: 6, foo: 'bar6'}}
             ]
           },
-          User: {
-            loading: false,
-            loadingError: undefined
-          }
+          User: null
         }
       )
     })
