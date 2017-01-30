@@ -76,7 +76,7 @@ const replaceMemberAttributes = ({id, data, metaData, state, cId}) => {
   if (!currentModel) {
     // model does not yet exist in models array -- create it.
     return collectionWithNewModel({state,
-      model: createNewModel({id, cId, metaData})
+      model: createNewModel({id, cId, metaData, attributes: data})
     })
   }
 
@@ -268,17 +268,13 @@ export default (config) => {
           }
           case `${resource}.ASSIGN_CID`: {
             const { cId } = action
-            const data = {
-              loading: false,
-              loadingError: undefined
-            }
 
             if (isSingleModel) {
               return createNewModel({cId})
             }
 
             return createNewCollection({
-              models: replaceMemberAttributes({data, cId, state})
+              models: replaceMemberAttributes({cId, state})
             })
           }
           case `${resource}.CREATE_SUCCESS`: {
@@ -314,7 +310,7 @@ export default (config) => {
 
             if (isSingleModel) {
               return createNewModel({id,
-                metaData: { loadingError: error },
+                metaData: { loading: true },
                 attributes: state.attributes
               })
             }

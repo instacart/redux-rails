@@ -489,6 +489,116 @@ describe('apiReducer', () => {
       )
     })
 
+    it('should create new resource on successful SHOW call of unknown resource', () => {
+      const response = {
+        id: 153131,
+        title: 'How to take over the world',
+        body: 'The same way we always do'
+      }
+
+      showReducerState = showReducer(showReducerState, {
+        type: 'Posts.SHOW_SUCCESS',
+        id: response.id,
+        response
+      })
+
+      expect(showReducerState).toEqual(
+        {
+          Posts: {
+            loading: false,
+            loadingError: undefined,
+            models: [
+              {
+                id: 123,
+                loading: false,
+                loadingError: undefined,
+                attributes: {
+                  id: 123,
+                  title: 'Three weird tricks for testing Redux Rails',
+                  body: '1: use Jest. 2: profit. 3: maybe this should only be 2 weird tricks...'
+                }
+              },
+              {
+                id: 153131,
+                loading: false,
+                loadingError: undefined,
+                attributes: response
+              }
+            ]
+          },
+          User: {
+            loading: false,
+            loadingError: undefined,
+            attributes: {
+              id: 4135,
+              first_name: 'Dom',
+              last_name: 'Cocchiarella',
+              description: 'Human living on Earth'
+            }
+          }
+        }
+      )
+    })
+
+    it('should create new resource on SHOW_ERROR for unknown resource', () => {
+      showReducerState = showReducer(showReducerState, {
+        type: 'Posts.SHOW_ERROR',
+        id: 163161,
+        error: {
+          message: 'Well, back to the drawing board'
+        }
+      })
+
+      expect(showReducerState).toEqual(
+        {
+          Posts: {
+            loading: false,
+            loadingError: undefined,
+            models: [
+              {
+                id: 123,
+                loading: false,
+                loadingError: undefined,
+                attributes: {
+                  id: 123,
+                  title: 'Three weird tricks for testing Redux Rails',
+                  body: '1: use Jest. 2: profit. 3: maybe this should only be 2 weird tricks...'
+                }
+              },
+              {
+                id: 153131,
+                loading: false,
+                loadingError: undefined,
+                attributes: {
+                  id: 153131,
+                  title: 'How to take over the world',
+                  body: 'The same way we always do'
+                }
+              },
+              {
+                id: 163161,
+                loading: false,
+                loadingError: {
+                  message: 'Well, back to the drawing board'
+                },
+                attributes: {}
+              }
+            ]
+          },
+          User: {
+            loading: false,
+            loadingError: undefined,
+            attributes: {
+              id: 4135,
+              first_name: 'Dom',
+              last_name: 'Cocchiarella',
+              description: 'Human living on Earth'
+            }
+          }
+        }
+      )
+    })
+
     describe('SHOW actions with custom idAttribute', () => {
       const customIdConfig = {
         domain: 'http://localhost:3000/',
@@ -708,6 +818,82 @@ describe('apiReducer', () => {
       )
     })
 
+    it('should create a singular resource, assign it a cId and set its attributes after successful CREATE call', () => {
+      const singularConfig = {
+        resources: { User: { controller: 'user' } }
+      }
+      const singleResourceReducer = apiReducer(singularConfig)
+      const cId = getUniqueClientId()
+      const response = {
+        id: 4135,
+        title: 'Why you should probably never do this',
+        body: 'Creating a singular resource from the client? Alright...'
+      }
+      let singularReducerState
+
+      singularReducerState = singleResourceReducer(singularReducerState, {
+        type: 'User.ASSIGN_CID', cId
+      })
+
+      singularReducerState = singleResourceReducer(singularReducerState, {
+        type: 'User.CREATE_SUCCESS',
+        cId,
+        id: response.id,
+        response
+      })
+
+      expect(singularReducerState).toEqual(
+        {
+          User: {
+            cId,
+            id: response.id,
+            loading: false,
+            loadingError: undefined,
+            attributes: response
+          }
+        }
+      )
+    })
+
+    it('should assign the singular resoucrce a cId and set its error after failed CREATE call', () => {
+      const singularConfig = {
+        resources: { User: { controller: 'user' } }
+      }
+      const singleResourceReducer = apiReducer(singularConfig)
+      const cId = getUniqueClientId()
+      const response = {
+        id: 4135,
+        title: 'Why you should probably never do this',
+        body: 'Creating a singular resource from the client? Alright...'
+      }
+      let singularReducerState
+
+      singularReducerState = singleResourceReducer(singularReducerState, {
+        type: 'User.ASSIGN_CID', cId
+      })
+
+      singularReducerState = singleResourceReducer(singularReducerState, {
+        type: 'User.CREATE_ERROR',
+        cId,
+        error: {
+          message: 'This was a bad idea anyway'
+        }
+      })
+
+      expect(singularReducerState).toEqual(
+        {
+          User: {
+            cId,
+            loading: false,
+            loadingError: {
+              message: 'This was a bad idea anyway'
+            },
+            attributes: {}
+          }
+        }
+      )
+    })
+
     describe('CREATE actions with custom idAttribute', () => {
       const customIdConfig = {
         domain: 'http://localhost:3000/',
@@ -761,11 +947,38 @@ describe('apiReducer', () => {
       })
     })
 
+    it('should assign the singular resource a cId', () => {
+      const singularReducer = apiReducer({
+        resources: { User: { controller: 'user ' } }
+      })
+      const cId = getUniqueClientId()
+      let singularReducerState
+
+      singularReducerState = singularReducer(singularReducerState, {
+        type: 'User.ASSIGN_CID', cId
+      })
+
+      expect(singularReducerState).toEqual(
+        {
+          User: {
+            loading: false,
+            loadingError: undefined,
+            cId,
+            attributes: {}
+          }
+        }
+      )
+    })
+
   })
 
   describe('UPDATE actions', () => {
     const updateReducer = apiReducer(configWithModelsReady)
+    const singularReducer = apiReducer({
+      resources: { User: { controller: 'user ' } }
+    })
     let updateReducerState
+    let singularReducerState
 
     it('should set the loading state on the member within a collection', () => {
       updateReducerState = updateReducer(updateReducerState, railsActions.update({
@@ -844,6 +1057,98 @@ describe('apiReducer', () => {
               {id: 5, loading: false, loadingError: undefined, attributes: { id: 5, foo: 'bar5'}},
               {id: 6, loading: false, loadingError: undefined, attributes: { id: 6, foo: 'bar6'}}
             ]
+          }
+        }
+      )
+    })
+
+    it('should update the attributes of an unknown member within a collection on success of UPDATE call', () => {
+      updateReducerState = updateReducer(updateReducerState, {
+        type: 'Posts.UPDATE_SUCCESS',
+        id: 13513,
+        response: {
+          id: 13513,
+          foo: 'uh oh'
+        }
+      })
+      expect(updateReducerState).toEqual(
+        {
+          Posts: {
+            loading: false,
+            loadingError: undefined,
+            models: [
+              {
+                id: 4,
+                loading: false,
+                loadingError: undefined,
+                attributes: { id: 4, foo: 'test'}
+              },
+              {id: 5, loading: false, loadingError: undefined, attributes: { id: 5, foo: 'bar5'}},
+              {id: 6, loading: false, loadingError: undefined, attributes: { id: 6, foo: 'bar6'}},
+              {id: 13513, loading: false, loadingError: undefined, attributes: { id: 13513, foo: 'uh oh'}}
+            ]
+          }
+        }
+      )
+    })
+
+    it('should set the loading state on a singular resource', () => {
+      singularReducerState = singularReducer(singularReducerState, railsActions.update({
+        resource: 'User',
+        attributes: {
+          foo: 'test'
+        }
+      }))
+      expect(singularReducerState).toEqual(
+        {
+          User: {
+            loading: true,
+            loadingError: undefined,
+            attributes: {}
+          }
+        }
+      )
+    })
+
+    it('should set the error loading state on a singular resource', () => {
+      singularReducerState = singularReducer(singularReducerState, {
+        type: 'User.UPDATE_ERROR',
+        error: {
+          message: '*sad trombone noise*'
+        }
+      })
+      expect(singularReducerState).toEqual(
+        {
+          User: {
+            loading: false,
+            loadingError: {
+              message: '*sad trombone noise*'
+            },
+            attributes: {}
+          }
+        }
+      )
+    })
+
+    it('should update the attributes on a singular resource after successful UPDATE call', () => {
+      singularReducerState = singularReducer(singularReducerState, {
+        type: 'User.UPDATE_SUCCESS',
+        response: {
+          first_name: 'Boyencé',
+          last_name: 'Knowles',
+          description: 'Queen'
+        }
+      })
+      expect(singularReducerState).toEqual(
+        {
+          User: {
+            loading: false,
+            loadingError: undefined,
+            attributes: {
+              first_name: 'Boyencé',
+              last_name: 'Knowles',
+              description: 'Queen'
+            }
           }
         }
       )
@@ -1061,5 +1366,119 @@ describe('apiReducer', () => {
     })
 
 
+  })
+
+  describe('LOADING action', () => {
+    const loadingReducer = apiReducer(configWithModelsReady)
+    let loadingReducerState = {}
+
+    it('shoud set the loading state of the member in the collection by id', () => {
+      loadingReducerState = loadingReducer(loadingReducerState, {
+        type: 'Posts.SET_LOADING',
+        id: 4
+      })
+      expect(loadingReducerState).toEqual(
+        {
+          Posts: {
+            loading: false,
+            loadingError: undefined,
+            models: [
+              {loading: true, loadingError: undefined, id: 4, attributes: {id: 4, foo: 'bar4'}},
+              {loading: false, loadingError: undefined, id: 5, attributes: {id: 5, foo: 'bar5'}},
+              {loading: false, loadingError: undefined, id: 6, attributes: {id: 6, foo: 'bar6'}}
+            ]
+          }
+        }
+      )
+    })
+
+    it('shoud set the loading state of the member in the collection by cId', () => {
+      const cId = 12
+      loadingReducerState = loadingReducer(loadingReducerState, {
+        type: 'Posts.ASSIGN_CID',
+        cId
+      })
+      loadingReducerState = loadingReducer(loadingReducerState, {
+        type: 'Posts.SET_LOADING',
+        cId
+      })
+      expect(loadingReducerState).toEqual(
+        {
+          Posts: {
+            loading: false,
+            loadingError: undefined,
+            models: [
+              {loading: true, loadingError: undefined, id: 4, attributes: {id: 4, foo: 'bar4'}},
+              {loading: false, loadingError: undefined, id: 5, attributes: {id: 5, foo: 'bar5'}},
+              {loading: false, loadingError: undefined, id: 6, attributes: {id: 6, foo: 'bar6'}},
+              {loading: true, loadingError: undefined, cId, attributes: {}}
+            ]
+          }
+        }
+      )
+    })
+
+    it('shoud set the loading state of the member in the collection by id with custom idAttribute', () => {
+      const modelsWithcustomIdConfig = {
+        domain: 'http://localhost:3000/',
+        resources: {
+          Posts: {
+            idAttribute: '_@@aid',
+            controller: 'posts',
+            models: [
+              {'_@@aid': 4, foo: 'bar4'},
+              {'_@@aid': 5, foo: 'bar5'},
+              {'_@@aid': 6, foo: 'bar6'}
+            ]
+          }
+        }
+      }
+
+      const loadingCustomIdReducer = apiReducer(modelsWithcustomIdConfig)
+      let loadingCustomIdReducerState = {}
+
+      loadingCustomIdReducerState = loadingCustomIdReducer(loadingCustomIdReducerState, {
+        type: 'Posts.SET_LOADING',
+        id: 5
+      })
+      expect(loadingCustomIdReducerState).toEqual(
+        {
+          Posts: {
+            loading: false,
+            loadingError: undefined,
+            models: [
+              {loading: false, loadingError: undefined, id: 4, attributes: {'_@@aid': 4, foo: 'bar4'}},
+              {loading: true, loadingError: undefined, id: 5, attributes: {'_@@aid': 5, foo: 'bar5'}},
+              {loading: false, loadingError: undefined, id: 6, attributes: {'_@@aid': 6, foo: 'bar6'}},
+            ]
+          }
+        }
+      )
+
+    })
+
+    it('shoud set the loading state of the singular resource', () => {
+      const singleResourceReducer = apiReducer(standardConfig)
+      let singleResourceReducerState = {}
+
+      singleResourceReducerState = singleResourceReducer(singleResourceReducerState, {
+        type: 'User.SET_LOADING'
+      })
+      expect(singleResourceReducerState).toEqual(
+        {
+          Posts: {
+            loading: false,
+            loadingError: undefined,
+            models: []
+          },
+          User: {
+            loading: true,
+            loadingError: undefined,
+            attributes: {}
+          }
+        }
+      )
+
+    })
   })
 })
