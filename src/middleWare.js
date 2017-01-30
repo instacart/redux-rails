@@ -1,5 +1,6 @@
 import {
   determineResourceType,
+  getResourceIdAttribute,
   getUniqueClientId
  } from './utilities'
 
@@ -64,11 +65,13 @@ const fetchResource = ({store, resource, config, data={}, railsAction, controlle
   const resourceConfig = config.resources[resource]
   const domain = resourceConfig.domain || config.domain
   const controller = controllerOverride || resourceConfig.controller
+  const idAttribute = getResourceIdAttribute({config, resource})
   let cId
 
   if (railsAction === 'CREATE') {
     cId = getUniqueClientId()
     store.dispatch({ type: `${resource}.ASSIGN_CID`, cId })
+    store.dispatch({ type: `${resource}.SET_LOADING`, cId})
   }
 
   fetch(
@@ -81,7 +84,7 @@ const fetchResource = ({store, resource, config, data={}, railsAction, controlle
           return store.dispatch({
             type: `${resource}.${railsAction}_ERROR`,
             error: json.error || { message: response.statusText },
-            id: data.id,
+            id: data[idAttribute],
             cId
           })
         }
@@ -89,7 +92,7 @@ const fetchResource = ({store, resource, config, data={}, railsAction, controlle
         store.dispatch({
           type: `${resource}.${railsAction}_SUCCESS`,
           cId,
-          id: data.id,
+          id: data[idAttribute],
           response: parseResult({
             json,
             resource,
@@ -101,7 +104,7 @@ const fetchResource = ({store, resource, config, data={}, railsAction, controlle
     })
     .catch((error) => {
       const type = `${resource}.${railsAction}_ERROR`
-      store.dispatch({ type, error, data })
+      store.dispatch({ type, error, id: data[idAttribute], cId })
     })
 }
 

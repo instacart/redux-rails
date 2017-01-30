@@ -1,5 +1,5 @@
 import { apiReducer, railsActions } from 'redux-rails'
-import { getUniqueClientId } from '../src/utilities'
+import { getUniqueClientId, getLastCreatedClientId } from '../src/utilities'
 
 const standardConfig = {
   domain: 'http://localhost:3000/',
@@ -57,11 +57,13 @@ describe('apiReducer', () => {
       {
         Posts: {
           loading: false,
-          loadingError: undefined
+          loadingError: undefined,
+          models: []
         },
         User: {
           loading: false,
-          loadingError: undefined
+          loadingError: undefined,
+          attributes: {}
         }
       }
     )
@@ -87,6 +89,41 @@ describe('apiReducer', () => {
     )
   })
 
+  it('should return correct intial state with models and custom id', () => {
+    const modelsWithcustomIdConfig = {
+      domain: 'http://localhost:3000/',
+      resources: {
+        Posts: {
+          idAttribute: '_@@aid',
+          controller: 'posts',
+          models: [
+            {'_@@aid': 4, foo: 'bar4'},
+            {'_@@aid': 5, foo: 'bar5'},
+            {'_@@aid': 6, foo: 'bar6'}
+          ]
+        }
+      }
+    }
+
+    const modelsWithCustomIdReducer = apiReducer(modelsWithcustomIdConfig)
+
+    expect(
+      modelsWithCustomIdReducer(undefined, {})
+    ).toEqual(
+      {
+        Posts: {
+          loading: false,
+          loadingError: undefined,
+          models: [
+            {loading: false, loadingError: undefined, id: 4, attributes: {'_@@aid': 4, foo: 'bar4'}},
+            {loading: false, loadingError: undefined, id: 5, attributes: {'_@@aid': 5, foo: 'bar5'}},
+            {loading: false, loadingError: undefined, id: 6, attributes: {'_@@aid': 6, foo: 'bar6'}}
+          ]
+        }
+      }
+    )
+  })
+
 
   describe('INDEX actions', () => {
     const indexReducer = apiReducer(standardConfig)
@@ -99,11 +136,13 @@ describe('apiReducer', () => {
         {
           Posts: {
             loading: true,
-            loadingError: undefined
+            loadingError: undefined,
+            models: []
           },
           User: {
             loading: false,
-            loadingError: undefined
+            loadingError: undefined,
+            attributes: {}
           }
         }
       )
@@ -119,11 +158,13 @@ describe('apiReducer', () => {
         {
           Posts: {
             loading: false,
-            loadingError: { message: 'a bad thing happened'}
+            loadingError: { message: 'a bad thing happened'},
+            models: []
           },
           User: {
             loading: false,
-            loadingError: undefined
+            loadingError: undefined,
+            attributes: {}
           }
         }
       )
@@ -138,11 +179,13 @@ describe('apiReducer', () => {
         {
           Posts: {
             loading: true,
-            loadingError: undefined
+            loadingError: undefined,
+            models: []
           },
           User: {
             loading: false,
-            loadingError: undefined
+            loadingError: undefined,
+            attributes: {}
           }
         }
       )
@@ -166,7 +209,8 @@ describe('apiReducer', () => {
           },
           User: {
             loading: false,
-            loadingError: undefined
+            loadingError: undefined,
+            attributes: {}
           }
         }
       )
@@ -190,7 +234,8 @@ describe('apiReducer', () => {
           },
           User: {
             loading: false,
-            loadingError: undefined
+            loadingError: undefined,
+            attributes: {}
           }
         }
       )
@@ -215,12 +260,14 @@ describe('apiReducer', () => {
             models: [{
               id: 123,
               loading: true,
-              loadingError: undefined
+              loadingError: undefined,
+              attributes: {}
             }]
           },
           User: {
             loading: false,
-            loadingError: undefined
+            loadingError: undefined,
+            attributes: {}
           }
         }
       )
@@ -239,12 +286,14 @@ describe('apiReducer', () => {
             models: [{
               id: 123,
               loading: true,
-              loadingError: undefined
+              loadingError: undefined,
+              attributes: {}
             }]
           },
           User: {
             loading: true,
-            loadingError: undefined
+            loadingError: undefined,
+            attributes: {}
           }
         }
       )
@@ -269,12 +318,14 @@ describe('apiReducer', () => {
               loading: false,
               loadingError: {
                 message: 'uh oh, this is probably a bad thing,'
-              }
+              },
+              attributes: {}
             }]
           },
           User: {
             loading: true,
-            loadingError: undefined
+            loadingError: undefined,
+            attributes: {}
           }
         }
       )
@@ -294,12 +345,14 @@ describe('apiReducer', () => {
             models: [{
               id: 123,
               loading: true,
-              loadingError: undefined
+              loadingError: undefined,
+              attributes: {}
             }]
           },
           User: {
             loading: true,
-            loadingError: undefined
+            loadingError: undefined,
+            attributes: {}
           }
         }
       )
@@ -321,14 +374,16 @@ describe('apiReducer', () => {
             models: [{
               id: 123,
               loading: true,
-              loadingError: undefined
+              loadingError: undefined,
+              attributes: {}
             }]
           },
           User: {
             loading: false,
             loadingError: {
               message: 'uh oh, this is probably a bad thing,'
-            }
+            },
+            attributes: {}
           }
         }
       )
@@ -347,12 +402,14 @@ describe('apiReducer', () => {
             models: [{
               id: 123,
               loading: true,
-              loadingError: undefined
+              loadingError: undefined,
+              attributes: {}
             }]
           },
           User: {
             loading: true,
-            loadingError: undefined
+            loadingError: undefined,
+            attributes: {}
           }
         }
       )
@@ -361,6 +418,7 @@ describe('apiReducer', () => {
     it('should set the member attributes within a collection after successful SHOW call', () => {
       showReducerState = showReducer(showReducerState, {
         type: 'Posts.SHOW_SUCCESS',
+        id: 123,
         response: {
           id: 123,
           title: 'Three weird tricks for testing Redux Rails',
@@ -386,7 +444,8 @@ describe('apiReducer', () => {
           },
           User: {
             loading: true,
-            loadingError: undefined
+            loadingError: undefined,
+            attributes: {}
           }
         }
       )
@@ -456,9 +515,10 @@ describe('apiReducer', () => {
               loading: false,
               loadingError: undefined,
               models: [{
-                '@@_id_': 4135,
+                id: 4135,
                 loading: true,
-                loadingError: undefined
+                loadingError: undefined,
+                attributes: {}
               }]
             }
           }
@@ -473,6 +533,7 @@ describe('apiReducer', () => {
         }
         customIdReducerState = customIdReducer(customIdReducerState, {
           type: 'Posts.SHOW_SUCCESS',
+          id: 4135,
           response
         })
 
@@ -482,7 +543,7 @@ describe('apiReducer', () => {
               loading: false,
               loadingError: undefined,
               models: [{
-                '@@_id_': 4135,
+                id: 4135,
                 loading: false,
                 loadingError: undefined,
                 attributes: response
@@ -513,7 +574,7 @@ describe('apiReducer', () => {
               loading: false,
               loadingError: undefined,
               models: [{
-                '@@_id_': 4135,
+                id: 4135,
                 loading: false,
                 loadingError: {
                   message: 'uh oh, this is probably a bad thing,'
@@ -549,13 +610,15 @@ describe('apiReducer', () => {
               {
                 cId,
                 loading: false,
-                loadingError: undefined
+                loadingError: undefined,
+                attributes: {}
               }
             ]
           },
           User: {
             loading: false,
-            loadingError: undefined
+            loadingError: undefined,
+            attributes: {}
           }
         }
       )
@@ -577,6 +640,7 @@ describe('apiReducer', () => {
       createReducerState = createReducer(createReducerState, {
         type: 'Posts.CREATE_SUCCESS',
         cId,
+        id: response.id,
         response
       })
 
@@ -597,7 +661,8 @@ describe('apiReducer', () => {
           },
           User: {
             loading: false,
-            loadingError: undefined
+            loadingError: undefined,
+            attributes: {}
           }
         }
       )
@@ -628,14 +693,16 @@ describe('apiReducer', () => {
                 cId,
                 loading: false,
                 loadingError: {
-                  message: 'This did not go well'
-                }
+                  message: 'This did not go well',
+                },
+                attributes: {}
               }
             ]
           },
           User: {
             loading: false,
-            loadingError: undefined
+            loadingError: undefined,
+            attributes: {}
           }
         }
       )
@@ -670,6 +737,7 @@ describe('apiReducer', () => {
         createReducerState = createReducer(createReducerState, {
           type: 'Posts.CREATE_SUCCESS',
           cId,
+          id: response['@@_id_'],
           response
         })
 
@@ -681,7 +749,7 @@ describe('apiReducer', () => {
               models: [
                 {
                   cId,
-                  '@@_id_': response['@@_id_'],
+                  id: response['@@_id_'],
                   loading: false,
                   loadingError: undefined,
                   attributes: response
@@ -693,6 +761,93 @@ describe('apiReducer', () => {
       })
     })
 
+  })
+
+  describe('UPDATE actions', () => {
+    const updateReducer = apiReducer(configWithModelsReady)
+    let updateReducerState
+
+    it('should set the loading state on the member within a collection', () => {
+      updateReducerState = updateReducer(updateReducerState, railsActions.update({
+        resource: 'Posts',
+        id: 4,
+        attributes: {
+          foo: 'test'
+        }
+      }))
+      expect(updateReducerState).toEqual(
+        {
+          Posts: {
+            loading: false,
+            loadingError: undefined,
+            models: [
+              {id: 4, loading: true, loadingError: undefined, attributes: { id: 4, foo: 'bar4'}},
+              {id: 5, loading: false, loadingError: undefined, attributes: { id: 5, foo: 'bar5'}},
+              {id: 6, loading: false, loadingError: undefined, attributes: { id: 6, foo: 'bar6'}}
+            ]
+          }
+        }
+      )
+    })
+
+    it('should set the loading error state on the member within a collection', () => {
+      updateReducerState = updateReducer(updateReducerState, {
+        type: 'Posts.UPDATE_ERROR',
+        id: 4,
+        error: {
+          message: 'resist!'
+        }
+      })
+      expect(updateReducerState).toEqual(
+        {
+          Posts: {
+            loading: false,
+            loadingError: undefined,
+            models: [
+              {
+                id: 4,
+                loading: false,
+                loadingError: {
+                  message: 'resist!'
+                },
+                attributes: { id: 4, foo: 'bar4'}
+              },
+              {id: 5, loading: false, loadingError: undefined, attributes: { id: 5, foo: 'bar5'}},
+              {id: 6, loading: false, loadingError: undefined, attributes: { id: 6, foo: 'bar6'}}
+            ]
+          }
+        }
+      )
+    })
+
+    it('should update the attributes of the member within a collection on success of UPDATE call', () => {
+      updateReducerState = updateReducer(updateReducerState, {
+        type: 'Posts.UPDATE_SUCCESS',
+        id: 4,
+        response: {
+          id: 4,
+          foo: 'test'
+        }
+      })
+      expect(updateReducerState).toEqual(
+        {
+          Posts: {
+            loading: false,
+            loadingError: undefined,
+            models: [
+              {
+                id: 4,
+                loading: false,
+                loadingError: undefined,
+                attributes: { id: 4, foo: 'test'}
+              },
+              {id: 5, loading: false, loadingError: undefined, attributes: { id: 5, foo: 'bar5'}},
+              {id: 6, loading: false, loadingError: undefined, attributes: { id: 6, foo: 'bar6'}}
+            ]
+          }
+        }
+      )
+    })
   })
 
   describe('DESTROY actions', () => {

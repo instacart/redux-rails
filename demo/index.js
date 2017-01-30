@@ -85,10 +85,11 @@ const commentsConfig = {
   resources: {
     Comments: {
       controller: 'comments',
+      idAttribute: '__$id',
       models: [
-        {id: 1, val: 121},
-        {id: 2, val: 122},
-        {id: 3, val: 123}
+        {'__$id': 1, val: 121},
+        {'__$id': 2, val: 122},
+        {'__$id': 3, val: 123}
       ]
     }
   }
