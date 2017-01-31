@@ -119,14 +119,68 @@ App.dispatch(railsActions.destroy({
 HTTP DELETE on specific member in resources. Example: `DELETE http://my-domain/myapi/posts/3`
 
 ### HTTP Method to Redux Actions Mappings
+
   
-| Redux Rails action | HTTP Method
+| Redux Rails action | HTTP Method  |
 | -----------------  | -----------  |
 | index              | GET          |
 | show               | GET          |
 | create             | POST         |
 | update             | PUT          |
 | destroy            | DELETE       |
+
+### Singular vs Plural Resources
+A resource can be singluar (user) or plural (users). This is determined by the name of the controller for your resource.
+
+```
+const apiConfig = {
+  domain: 'https://your-site-url.com/api/',
+  resources: {
+    User: {
+      controller: 'user' // singluar
+    },
+    Users: {
+      controller: 'users' // plural
+    },
+    Comment: {
+      controller: 'comments' // plural
+    },
+    Cats: {
+      controller: 'cat' // singular
+    }
+  }
+}
+```
+
+Singular resources do not use or require an id in the actions, nor is an id added to the constructed url.
+
+```
+  App.dispatch(railsActions.show({resource: 'user'}))
+  // GET https://your-site-url.com/api/user
+```
+
+With the exception of `create`, plural resources require a member id, and the id is added to the constructed url.
+
+```
+  App.dispatch(railsActions.show({resource: 'users', id: 123}))
+  // GET https://your-site-url.com/api/users/123
+```
+
+With user(s) as an example resource, and `https://your-site-url.com/api/` as your domain, your url structures would look like this for different rails actions.
+
+| Resource Controller | Redux Rails action | HTTP Method  | controller URL |
+| ------------------- | ------------------ | -----------  | -------------- |
+| user                | index              | GET          | `https://your-site-url.com/api/user`
+| users               | index              | GET          | `https://your-site-url.com/api/users`
+| user                | show               | GET          | `https://your-site-url.com/api/user`
+| users               | show               | GET          | `https://your-site-url.com/api/users/<memberId>`
+| user                | create             | POST         | `https://your-site-url.com/api/user`
+| users               | create             | POST         | `https://your-site-url.com/api/users`
+| user                | update             | PUT          | `https://your-site-url.com/api/user`
+| users               | update             | PUT          | `https://your-site-url.com/api/users/<memberId>`
+| user                | destroy            | DELETE       | `https://your-site-url.com/api/user`
+| users               | destroy            | DELETE       | `https://your-site-url.com/api/users/<memberId>`
+
 
 ## Usage with React-Redux
 
