@@ -120,7 +120,7 @@ HTTP DELETE on specific member in resources. Example: `DELETE http://my-domain/m
 
 ### HTTP Method to Redux Actions Mappings
   
-| Redux Rails atcion | HTTP Method
+| Redux Rails action | HTTP Method
 | -----------------  | -----------  |
 | INDEX              | GET          |
 | SHOW               | GET          |
