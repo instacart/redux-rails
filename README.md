@@ -7,7 +7,7 @@ Redux Rails
 ### Import necessary tools
 
 ```
-import { createStore, applyMiddleware } from 'redux'
+import { createStore, applyMiddleware, compose } from 'redux'
 import { middleWare, apiReducer, railsActions } from 'redux-rails'
 ```
 
@@ -32,7 +32,7 @@ const App = createStore(
     resources: apiReducer(apiConfig)
   },
   {},
-  composeEnhancers(
+  compose(
     applyMiddleware(middleWare(apiConfig))
   )
 )
@@ -50,6 +50,7 @@ App.dispatch(railsActions.show({
 ### Use your fetched resources
 ```
 console.log(App.getState().resources.Posts)
+
 ```
 
 ## Available Rails Actions
@@ -181,6 +182,205 @@ With user(s) as an example resource, and `https://your-site-url.com/api/` as you
 | user                | destroy            | DELETE       | `https://your-site-url.com/api/user`
 | users               | destroy            | DELETE       | `https://your-site-url.com/api/users/<memberId>`
 
+
+## Structure of Redux models and collections
+Plural resources create a collection with a set of models while singular resources create a model with a set of attributes. 
+
+```
+import { createStore, applyMiddleware, compose } from 'redux'
+import { middleWare, apiReducer, railsActions } from 'redux-rails'
+
+  const config = {
+    domain: 'https://your-site-url.com/api/',
+    resources: {
+      User: {
+        controller: 'user' // singular resource
+      },
+      Users: {
+        controller: 'users' // plural resource
+      }
+    }
+  }
+  
+  const App = createStore(
+  {
+    resources: apiReducer(config)
+  },
+  {},
+  compose(
+    applyMiddleware(middleWare(apiConfig))
+  )
+)
+App.dispatch(railsActions.show(resource: 'User')) // fetch user resource
+App.dispatch(railsActions.index(resource: 'Users')) // fetch users resource
+
+App.getState()
+/*
+  After calls finish the redux state would be:
+  {
+    resources: {
+      User: {
+        loading: false,
+        loadingError: undefined,
+        attributes: {
+          first_name: 'Leia',
+          last_name: 'Organa',
+          title: 'General'
+        }
+      },
+      Users: {
+        loading: false,
+        loadingError: undefined,
+        models: [
+          {
+            loading: false,
+            loadingError: undefined,
+            id: 123,
+            attributes: {
+              id: 123,
+              first_name: 'Leia',
+              last_name: 'Organa',
+              title: 'General'
+            }
+          },
+          {
+            loading: false,
+            loadingError: undefined,
+            id: 124,
+            attributes: {
+              id: 124,
+              first_name: 'Han',
+              last_name: 'Solo',
+              title: 'Smuggler'
+            }
+          },
+          {
+            loading: false,
+            loadingError: undefined,
+            id: 125,
+            attributes: {
+              id: 125,
+              first_name: 'Luke',
+              last_name: 'Skywalker',
+              title: 'Commander'
+            }
+          }
+        ]
+      }
+    }
+  }
+*/
+  
+```
+### Model
+Models are always an object with meta data and an attributes object:
+```
+{
+  loading: false,
+  loadingError: undefined,
+  id: 123,
+  attributes: {
+    id: 123,
+    first_name: 'Leia',
+    last_name: 'Organa',
+    title: 'General'
+  }
+}
+```
+
+The `idAttribute` set on the config is used to create the id in the meta data. For example, if the `idAttribute` was set to `__id`, the model would be:
+```
+{
+  loading: false,
+  loadingError: undefined,
+  id: 123,
+  attributes: {
+    __id: 123,
+    first_name: 'Leia',
+    last_name: 'Organa',
+    title: 'General'
+  }
+}
+```
+
+### Collection
+Collections are an object with meta data and an array of models.
+```
+Users: {
+  loading: false,
+  loadingError: undefined,
+  models: [
+    {
+      loading: false,
+      loadingError: undefined,
+      id: 123,
+      attributes: {
+        id: 123,
+        first_name: 'Leia',
+        last_name: 'Organa',
+        title: 'General'
+      }
+    },
+    {
+      loading: false,
+      loadingError: undefined,
+      id: 124,
+      attributes: {
+        id: 124,
+        first_name: 'Han',
+        last_name: 'Solo',
+        title: 'Smuggler'
+      }
+    },
+    {
+      loading: false,
+      loadingError: undefined,
+      id: 125,
+      attributes: {
+        id: 125,
+        first_name: 'Luke',
+        last_name: 'Skywalker',
+        title: 'Commander'
+      }
+    }
+  ]
+}
+```
+
+Models within a collection can be updated, destroyed, or refetched using `railsActions`.
+
+```
+  App.dispatch(railsActions.update({
+    resource: 'Users', 
+    id: 124,
+    attributes: {
+      title: 'Captain'
+    }
+  }))
+  
+  /*
+  after loading finished, the model would be updated to:
+  {
+    loading: false,
+    loadingError: undefined,
+    id: 124,
+    attributes: {
+      id: 124,
+      first_name: 'Han',
+      last_name: 'Solo',
+      title: 'Captain'
+    }
+  }
+  */
+  
+```
+
+### Meta data
+Models and collections each get a few pieces of meta data. Some are optional and some are always around
+- **loading** - true while any rails action is currently awaiting a response from the server.
+- **loadingError** - any error that occurred during the last rails action. Cleared on subsequent actions.
+- **id (optional)** - the id of the model/resource member.
+- **cId (optional)** - used for internal purposes only.
 
 ## Usage with React-Redux
 
@@ -384,3 +584,5 @@ const App = createStore(
   )
 )
 ```
+
+The first config given to `combineConfigs` is used as the default for top-level `domain` and `fetchParams`. These can be overriden per config and per resource. 
