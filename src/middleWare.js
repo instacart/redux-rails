@@ -79,28 +79,36 @@ const fetchResource = ({store, resource, config, data={}, railsAction, controlle
     constructfetchOptions({railsAction, resource, data, config})
   )
     .then((response) => {
-      response.json().then((json) => {
-        if(!response.ok) {
-          return store.dispatch({
-            type: `${resource}.${railsAction}_ERROR`,
-            error: json.error || { message: response.statusText },
-            id: json[idAttribute] || data.id,
-            cId
-          })
-        }
+      response.json()
+        .then((json) => {
+          const id = (json && json[idAttribute]) || data.id
 
-        store.dispatch({
-          type: `${resource}.${railsAction}_SUCCESS`,
-          cId,
-          id: json[idAttribute] || data.id,
-          response: parseResult({
-            json,
-            resource,
-            config,
-            resourceType: determineResourceType({controller})
+          if(!response.ok) {
+            return store.dispatch({
+              type: `${resource}.${railsAction}_ERROR`,
+              error: json.error || { message: response.statusText },
+              id,
+              cId
+            })
+          }
+
+          store.dispatch({
+            type: `${resource}.${railsAction}_SUCCESS`,
+            cId,
+            id,
+            response: parseResult({
+              json,
+              resource,
+              config,
+              resourceType: determineResourceType({controller})
+            })
           })
         })
-      })
+        .catch((error) => {
+          const type = `${resource}.${railsAction}_ERROR`
+          const outError = error && error.toString && error.toString()
+          store.dispatch({ type, error: outError, id: data.id, cId })
+        })
     })
     .catch((error) => {
       const type = `${resource}.${railsAction}_ERROR`

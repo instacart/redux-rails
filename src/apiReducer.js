@@ -204,6 +204,17 @@ export default (config) => {
             }))
           }
           case `${resource}.INDEX_SUCCESS`: {
+            if (!Array.isArray(action.response)) {
+              console.error('Response to INDEX actions must be of type array. You can use the parse methods to transform data if needed.')
+
+              return Object.assign({}, state, createNewCollection({
+                metaData: {
+                  loading: false,
+                  loadingError: 'Bad data received from server. INDEX calls expect an array.'
+                }
+              }))
+            }
+
             return Object.assign({}, state, createNewCollection({
               models: action.response.map(model => createNewModel({
                 id: model[idAttribute],
