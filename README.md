@@ -122,11 +122,11 @@ HTTP DELETE on specific member in resources. Example: `DELETE http://my-domain/m
   
 | Redux Rails action | HTTP Method
 | -----------------  | -----------  |
-| INDEX              | GET          |
-| SHOW               | GET          |
-| CREATE             | POST         |
-| UPDATE             | PUT          |
-| DESTROY            | DELETE       |
+| index              | GET          |
+| show               | GET          |
+| create             | POST         |
+| update             | PUT          |
+| destroy            | DELETE       |
 
 ## Usage with React-Redux
 
