@@ -53,12 +53,16 @@ console.log(App.getState().resources.Posts)
 ```
 
 ## Available Rails Actions
+
 ### index
 
-Fetch list of members from a resource collection
+Fetch list of members from a resource collection.
 ```
 App.dispatch(railsActions.index({resource: 'Posts'}))
 ```
+
+HTTP GET on resources. Example: `GET http://my-domain/myapi/posts`
+
 
 ### show
 
@@ -69,6 +73,7 @@ App.dispatch(railsActions.show({
   id: 3
 }))
 ```
+HTTP GET on specific member in resources. Example: `GET http://my-domain/myapi/posts/3`
 
 ### update
 
@@ -84,6 +89,8 @@ App.dispatch(railsActions.update({
 }))
 ```
 
+HTTP PUT on specific member in resources. Example: `PUT http://my-domain/myapi/posts/3`
+
 ### create
 
 Create a new member in a resource collection
@@ -97,6 +104,8 @@ App.dispatch(railsActions.create({
 }))
 ```
 
+HTTP POST on resources. Example: `POST http://my-domain/myapi/posts`
+
 ### destroy
 
 Destroy a specific member inside a resource collection
@@ -106,6 +115,18 @@ App.dispatch(railsActions.destroy({
   id: 3
 }))
 ```
+
+HTTP DELETE on specific member in resources. Example: `DELETE http://my-domain/myapi/posts/3`
+
+### HTTP Method to Redux Actions Mappings
+  
+| Redux Rails atcion | HTTP Method
+| -----------------  | -----------  |
+| INDEX              | GET          |
+| SHOW               | GET          |
+| CREATE             | POST         |
+| UPDATE             | PUT          |
+| DESTROY            | DELETE       |
 
 ## Usage with React-Redux
 
