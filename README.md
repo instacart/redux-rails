@@ -5,6 +5,12 @@ Redux Rails
 Redux Rails is a Redux middleware for auto-generating the actions, reducers and settings for talking to your RESTful backend. It removes boilerplate and keeps your app consistent. 
 
 ## How is it done?
+> ###tldr
+> 1. Create your config
+> 2. Create your Redux store
+> 3. Use provided actions to talk with your backend api
+> 4. Access your api results in your Redux state
+
 You create a config object that lays out your backend resources. The config roughly matches a Rails routes file, but *a Rails backend is not a requirement*. You then hand this config to the Redux Rails middleware and  assign your config to a reducer creator. Redux Rails then gives you specific actions for fetching, updating, creating and deleting these resources. You also get handy metadata related to the resources' loading states.
 
 
@@ -23,6 +29,9 @@ const apiConfig = {
   resources: {
     Posts: {
       controller: 'posts'
+    },
+    User: {
+      controller: 'user'
     }
   }
 }
@@ -31,7 +40,7 @@ const apiConfig = {
 
 const App = createStore(
   {
-    resources: apiReducer(apiConfig)
+    resources: apiReducer(apiConfig) // auto-generates reducers
   },
   {},
   compose(
@@ -46,11 +55,14 @@ App.dispatch(railsActions.show({
   id: 3
 }))
 
+App.dispatch(railsActions.show({resource: 'User'}))
+
 // ...wait for server response
 
 // Use your fetched resources
 
 App.getState().resources.Posts.models.map(m => console.log(m))
+console.log(App.getState().resources.User)
 
 ```
 
