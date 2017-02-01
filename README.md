@@ -4,16 +4,14 @@ Redux Rails
 
 ## Basic Usage
 
-### Import necessary tools
-
 ```
+// Import necessary tools
+
 import { createStore, applyMiddleware, compose } from 'redux'
 import { middleWare, apiReducer, railsActions } from 'redux-rails'
-```
 
-### Set up your config
+// Set up your config
 
-```
 const apiConfig = {
   domain: 'https://your-site-url.com/api/',
   resources: {
@@ -22,11 +20,9 @@ const apiConfig = {
     }
   }
 }
-```
 
-### Create your Redux store
+// Create your Redux store
 
-```
 const App = createStore(
   {
     resources: apiReducer(apiConfig)
@@ -36,20 +32,17 @@ const App = createStore(
     applyMiddleware(middleWare(apiConfig))
   )
 )
-```
 
-### Fetch your resources
+// Fetch your resources
 
-```
 App.dispatch(railsActions.show({
   resource: 'Posts',
   id: 3
 }))
-```
 
-### Use your fetched resources
-```
-console.log(App.getState().resources.Posts)
+// Use your fetched resources
+
+App.getState().resources.Posts.models.map(m => console.log(m))
 
 ```
 
