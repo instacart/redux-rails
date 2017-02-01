@@ -40,6 +40,8 @@ App.dispatch(railsActions.show({
   id: 3
 }))
 
+// ...wait for server response
+
 // Use your fetched resources
 
 App.getState().resources.Posts.models.map(m => console.log(m))
