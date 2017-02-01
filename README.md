@@ -4,7 +4,7 @@ Redux Rails
 
 ## Basic Usage
 
-```
+```js
 // Import necessary tools
 
 import { createStore, applyMiddleware, compose } from 'redux'
@@ -53,7 +53,7 @@ App.getState().resources.Posts.models.map(m => console.log(m))
 ### index
 
 Fetch list of members from a resource collection.
-```
+```js
 App.dispatch(railsActions.index({resource: 'Posts'}))
 ```
 
@@ -63,7 +63,7 @@ HTTP GET on resources. Example: `GET http://my-domain/myapi/posts`
 ### show
 
 Fetch a specific member from a resource collection
-```
+```js
 App.dispatch(railsActions.show({
   resource: 'Posts',
   id: 3
@@ -74,7 +74,7 @@ HTTP GET on specific member in resources. Example: `GET http://my-domain/myapi/p
 ### update
 
 Update a specific member of a resource collection
-```
+```js
 App.dispatch(railsActions.update({
   resource: 'Posts',
   id: 3,
@@ -90,7 +90,7 @@ HTTP PUT on specific member in resources. Example: `PUT http://my-domain/myapi/p
 ### create
 
 Create a new member in a resource collection
-```
+```js
 App.dispatch(railsActions.create({
   resource: 'Posts',
   attributes: {
@@ -105,7 +105,7 @@ HTTP POST on resources. Example: `POST http://my-domain/myapi/posts`
 ### destroy
 
 Destroy a specific member inside a resource collection
-```
+```js
 App.dispatch(railsActions.destroy({
   resource: 'Posts',
   id: 3
@@ -128,7 +128,7 @@ HTTP DELETE on specific member in resources. Example: `DELETE http://my-domain/m
 ### Singular vs Plural Resources
 A resource can be singluar (user) or plural (users). This is determined by the name of the controller for your resource.
 
-```
+```js
 const apiConfig = {
   domain: 'https://your-site-url.com/api/',
   resources: {
@@ -150,14 +150,14 @@ const apiConfig = {
 
 Singular resources do not use or require an id in the actions, nor is an id added to the constructed url.
 
-```
+```js
   App.dispatch(railsActions.show({resource: 'user'}))
   // GET https://your-site-url.com/api/user
 ```
 
 With the exception of `create`, plural resources require a member id, and the id is added to the constructed url.
 
-```
+```js
   App.dispatch(railsActions.show({resource: 'users', id: 123}))
   // GET https://your-site-url.com/api/users/123
 ```
@@ -181,7 +181,7 @@ With user(s) as an example resource, and `https://your-site-url.com/api/` as you
 ## Structure of Redux models and collections
 Plural resources create a collection with a set of models while singular resources create a model with a set of attributes. 
 
-```
+```js
 import { createStore, applyMiddleware, compose } from 'redux'
 import { middleWare, apiReducer, railsActions } from 'redux-rails'
 
@@ -269,7 +269,7 @@ App.getState()
 ```
 ### Model
 Models are always an object with meta data and an attributes object:
-```
+```js
 {
   loading: false,
   loadingError: undefined,
@@ -284,7 +284,7 @@ Models are always an object with meta data and an attributes object:
 ```
 
 The `idAttribute` set on the config is used to create the id in the meta data. For example, if the `idAttribute` was set to `__id`, the model would be:
-```
+```js
 {
   loading: false,
   loadingError: undefined,
@@ -300,7 +300,7 @@ The `idAttribute` set on the config is used to create the id in the meta data. F
 
 ### Collection
 Collections are an object with meta data and an array of models.
-```
+```js
 Users: {
   loading: false,
   loadingError: undefined,
@@ -344,7 +344,7 @@ Users: {
 
 Models within a collection can be updated, destroyed, or refetched using `railsActions`.
 
-```
+```js
   App.dispatch(railsActions.update({
     resource: 'Users', 
     id: 124,
@@ -381,7 +381,7 @@ Models and collections each get a few pieces of meta data. Some are optional and
 
 First, set up your Redux Rails config, set up your apiReducer and apply the Redux Rails middle ware
 
-```
+```js
 import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
 import { railsActions } from 'redux-rails'
@@ -437,7 +437,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(MyReactComponent)
 The Redux Rails config has many options. You can also use several configs along with several instances of the apiReducer to distribute your resources throughout your redux store's hierarchy.
 
 A complex example of a Redux Rails config:
-```
+```js
 const apiConfig = {
   domain: 'https://your-site-url.com/api/',
   resources: {
@@ -479,7 +479,7 @@ The controller attribute tells Redux Rails what specific url to make HTTP action
 This can be either a single function or an object with two functions, `member` and `collection`. These functions are used to parse the response from your api, and its where you should do any data transformation before the data is added to your Redux store.
 
 Example of a single function for all resource types:
-```
+```js
 const apiConfig = {
   domain: 'https://your-site-url.com/api/',
   resources: {
@@ -497,7 +497,7 @@ const apiConfig = {
 ```
 
 Example of a function for each resource type:
-```
+```js
 const apiConfig = {
   domain: 'https://your-site-url.com/api/',
   resources: {
@@ -531,7 +531,7 @@ This is where you would set your headers or credentials, for example.
 ### Using multiple configs
 Multiple configs can be used throughout your Redux store's hierarchy. Use combineConfigs to do this.
 
-```
+```js
 import { createStore, applyMiddleware } from 'redux'
 import { middleWare, apiReducer, combineConfigs } from 'redux-rails'
 
