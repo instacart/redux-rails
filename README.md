@@ -2,6 +2,12 @@ Redux Rails
 =========================
 [![Build Status](https://travis-ci.com/instacart/redux-rails.svg?token=QDSMJH3hiak5dQzToZJx&branch=master)](https://travis-ci.com/instacart/redux-rails)
 
+Redux Rails is a Redux middleware for auto-generating the actions, reducers and settings for talking to your RESTful backend. It removes boilerplate and keeps your app consistent. 
+
+## How is it done?
+You create a config object that lays out your backend resources. The config roughly matches a Rails routes file, but *a Rails backend is not a requirement*. You then hand this config to the Redux Rails middleware and  assign your config to a reducer creator. Redux Rails then gives you specific actions for fetching, updating, creating and deleting these resources. You also get handy metadata related to the resources' loading states.
+
+
 ## Basic Usage
 
 ```js
