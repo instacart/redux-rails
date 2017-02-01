@@ -197,7 +197,29 @@ With user(s) as an example resource, and `https://your-site-url.com/api/` as you
 
 
 ## Structure of Redux models and collections
-Plural resources create a collection with a set of models while singular resources create a model with a set of attributes. 
+Your backend resources, like users, comments, posts, etc, are put into `models` and `collections`. Which are just objects and arrays, respectively. Collections and models both have metadata (loading state, id, etc). Models have an attributes object, which is set to the response from the server for that model.
+
+```js
+  Posts: {
+    loading: false,
+    loaingError: undefined,
+    models: [
+      {
+        loading: false,
+        loaingError: undefined,
+        id: 123,
+        attributes:{
+          id: 123,
+          name: 'Dominic'
+        }
+      },
+      {...},
+      {...}
+    ]
+  }
+```
+
+**Full exmaple:**
 
 ```js
 import { createStore, applyMiddleware, compose } from 'redux'
@@ -286,7 +308,7 @@ App.getState()
   
 ```
 ### Model
-Models are always an object with meta data and an attributes object:
+Models are always an object with metadata and an attributes object:
 ```js
 {
   loading: false,
@@ -301,23 +323,8 @@ Models are always an object with meta data and an attributes object:
 }
 ```
 
-The `idAttribute` set on the config is used to create the id in the meta data. For example, if the `idAttribute` was set to `__id`, the model would be:
-```js
-{
-  loading: false,
-  loadingError: undefined,
-  id: 123,
-  attributes: {
-    __id: 123,
-    first_name: 'Leia',
-    last_name: 'Organa',
-    title: 'General'
-  }
-}
-```
-
 ### Collection
-Collections are an object with meta data and an array of models.
+Collections are an object with metadata and an array of models.
 ```js
 Users: {
   loading: false,
@@ -360,7 +367,7 @@ Users: {
 }
 ```
 
-Models within a collection can be updated, destroyed, or refetched using `railsActions`.
+Singular resources, and models within a collection, can be updated, destroyed, or refetched using `railsActions`.
 
 ```js
   App.dispatch(railsActions.update({
@@ -388,8 +395,8 @@ Models within a collection can be updated, destroyed, or refetched using `railsA
   
 ```
 
-### Meta data
-Models and collections each get a few pieces of meta data. Some are optional and some are always around
+### Metadata
+Models and collections each get a few pieces of metadata. Some are optional and some are always around.
 - **loading** - true while any rails action is currently awaiting a response from the server.
 - **loadingError** - any error that occurred during the last rails action. Cleared on subsequent actions.
 - **id (optional)** - the id of the model/resource member.
@@ -397,7 +404,7 @@ Models and collections each get a few pieces of meta data. Some are optional and
 
 ## Usage with React-Redux
 
-First, set up your Redux Rails config, set up your apiReducer and apply the Redux Rails middle ware
+First, set up your Redux Rails config, set up your apiReducer and apply the Redux Rails middleware
 
 ```js
 import { bindActionCreators } from 'redux'
@@ -536,7 +543,22 @@ const apiConfig = {
 ```
 
 #### idAttribute (optional)
-This is defaulted to `id` and tells Redux Rails which attribute on your resource is the unique identifier.
+This is defaulted to `id` and tells Redux Rails which attribute on your resource is the unique identifier. If your api assigns ids to the attribute `_@@id`, for example, you would set `idAttribute` to `_@@id` for that specific resource or for all resources in the config. Models still get `id` set as metadata no matter the `idAttribute` setting.
+
+Example with `idAttribute` set to `_@@id`:
+```js
+{
+  loading: false,
+  loadingError: undefined,
+  id: 123,
+  attributes: {
+    `_@@id`: 123,
+    first_name: 'Leia',
+    last_name: 'Organa',
+    title: 'General'
+  }
+}
+```
 
 #### domain (optional)
 If you'd like a different domain for a specific resource, you can set `domain` on the resource level as well.
