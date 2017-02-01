@@ -490,18 +490,45 @@ const apiConfig = {
 ```
 
 ### domain
-This is the top level for all resources in the config. If your site's api is entirely under 'https://your-site-url.com/api/', ex. `'https://your-site-url.com/api/posts'`, then this should be the only domain setting you need.
+This is the top level for all resources in the config. If your site's api is entirely under `https://your-site-url.com/api/`, ex. `https://your-site-url.com/api/posts`, then this should be the only domain setting you need.
 
-If you need a different domain per resource, ex. 'https://your-site-url.com/api/posts' and 'https://your-OTHER-site-url.com/api/comments', you can set a specific domain per resource that needs needs it. Any resource without a domain set will fallback to this top-level domain setting.
+If you need a different domain per resource, ex. `https://your-site-url.com/api/posts` and `https://your-OTHER-site-url.com/api/comments`, you can set a specific domain per resource that needs it. Any resource without a domain set will fallback to this top-level domain setting.
 
 ### resources
 This is a mapping of your Rails resources. Resources can be plural (ex: posts) or singular (ex: post). Each resource has a list of optional attributes and one required attribute (controller)
 
+**example
+```js
+const apiConfig = {
+  domain: 'https://your-site-url.com/api/',
+  resources: {
+    Posts: {
+      controller: 'posts',
+      parse: resp => resp.posts.map(p => p.title)
+    },
+    Comments: {
+      controller: 'comments',
+      idAttribute: '_id',
+      domain: 'https://your-OTHER-site-url.com/api/'
+    },
+    User: {
+      controller: 'user',
+      fetchParams: {
+        headers: {
+          'content-type':'application/json'
+        }
+      }
+    }
+  }
+}
+```
+
+
 #### controller (required)
-The controller attribute tells Redux Rails what specific url to make HTTP actions against. For example, the resource `Posts` could be found at `https://your-site-url.com/api/posts`. This would make the domain for this resource `https://your-site-url.com/api/` and the controller `posts`. The controller does not need to match the name of the resource, though this is generally good practice for a RESTful api.
+The controller attribute tells Redux Rails what specific url to make HTTP actions against. For example, the resource `Posts` could be found at `https://your-site-url.com/api/posts`. This would make the domain for this resource `https://your-site-url.com/api/` and the controller `posts`. The controller does not need to match the name of the resource, though this is generally good practice for a RESTful api. If you're using Rails, the controller set here should probably match the one set in your routes file.
 
 #### parse (optional)
-This can be either a single function or an object with two functions, `member` and `collection`. These functions are used to parse the response from your api, and its where you should do any data transformation before the data is added to your Redux store.
+This can be either a single function or an object with two functions, `member` and `collection`. These functions are used to parse the response from your api, and its where you should do any data transformation before the data is added to your Redux store. `member` is used for responses related to a specific model and `collection` is used for responses to `index` calls.
 
 Example of a single function for all resource types:
 ```js
@@ -561,15 +588,15 @@ Example with `idAttribute` set to `_@@id`:
 ```
 
 #### domain (optional)
-If you'd like a different domain for a specific resource, you can set `domain` on the resource level as well.
+Url domain for your resource(s). If you'd like a different domain for a specific resource, you can set `domain` on the resource level as well. If you're using multiple configs, each config can have a top-level domain.
 
 ### fetchParams
 These are the options sent to the `Fetch` call when making any call to your api. These map directly to the options available in the [Fetch Request object](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request).
 
-This is where you would set your headers or credentials, for example.
+This is where you would set your headers or credentials, for example. This can be set per resource or top-level. Each config, if you're using mutliple configs, can also have their own settings.
 
 ### Using multiple configs
-Multiple configs can be used throughout your Redux store's hierarchy. Use combineConfigs to do this.
+Multiple configs can be used throughout your Redux store's hierarchy. Use `combineConfigs` to do this.
 
 ```js
 import { createStore, applyMiddleware } from 'redux'
