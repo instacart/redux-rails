@@ -2,7 +2,7 @@ Redux Rails
 =========================
 [![Build Status](https://travis-ci.com/instacart/redux-rails.svg?token=QDSMJH3hiak5dQzToZJx&branch=master)](https://travis-ci.com/instacart/redux-rails)
 
-Redux Rails is a Redux middleware for auto-generating the actions, reducers and settings for talking to your RESTful backend. It removes boilerplate and keeps your app consistent. 
+Redux Rails is a Redux middleware for auto-generating the actions, reducers and settings for talking to your RESTful backend. It removes boilerplate and keeps your app consistent.
 
 ## How is it done?
 > ###tldr
@@ -11,7 +11,7 @@ Redux Rails is a Redux middleware for auto-generating the actions, reducers and 
 > 3. Use provided actions to talk with your backend api
 > 4. Access your api results in your Redux state
 
-You create a config object that lays out your backend resources. The config roughly matches a Rails routes file, but *a Rails backend is not a requirement*. You then hand this config to the Redux Rails middleware and  assign your config to a reducer creator. Redux Rails then gives you specific actions for fetching, updating, creating and deleting these resources. You also get handy metadata related to the resources' loading states.
+You create a config object that lays out your backend resources. The config roughly matches a Rails routes file, but **a Rails backend is not a requirement**. You then hand this config to the Redux Rails middleware and assign your config to a reducer creator. Redux Rails then gives you specific actions for fetching, updating, creating and deleting these resources. You also get handy metadata related to the resources' loading states. It also keeps an internal queue to ensure methods are executed in order, per resource.
 
 
 ## Basic Usage
@@ -134,7 +134,7 @@ HTTP DELETE on specific member in resources. Example: `DELETE http://my-domain/m
 
 ### HTTP Method to Redux Actions Mappings
 
-  
+
 | Redux Rails action | HTTP Method  |
 | -----------------  | -----------  |
 | index              | GET          |
@@ -236,7 +236,7 @@ import { middleWare, apiReducer, railsActions } from 'redux-rails'
       }
     }
   }
-  
+
   const App = createStore(
   {
     resources: apiReducer(config)
@@ -305,7 +305,7 @@ App.getState()
     }
   }
 */
-  
+
 ```
 ### Model
 Models are always an object with metadata and an attributes object:
@@ -371,13 +371,13 @@ Singular resources, and models within a collection, can be updated, destroyed, o
 
 ```js
   App.dispatch(railsActions.update({
-    resource: 'Users', 
+    resource: 'Users',
     id: 124,
     attributes: {
       title: 'Captain'
     }
   }))
-  
+
   /*
   after loading finished, the model would be updated to:
   {
@@ -392,7 +392,7 @@ Singular resources, and models within a collection, can be updated, destroyed, o
     }
   }
   */
-  
+
 ```
 
 ### Metadata
@@ -647,4 +647,4 @@ const App = createStore(
 )
 ```
 
-The first config given to `combineConfigs` is used as the default for top-level `domain` and `fetchParams`. These can be overriden per config and per resource. 
+The first config given to `combineConfigs` is used as the default for top-level `domain` and `fetchParams`. These can be overriden per config and per resource.

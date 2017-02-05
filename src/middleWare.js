@@ -14,27 +14,6 @@ import {
    DESTROY : 'DELETE',
  }
 
-const parseResult = ({json, resource, config, resourceType}) => {
-  const resourceParse = config.resources[resource].parse
-
-  // parse methods can be defined per resousrce type or
-  // as a catchall for all resource types
-  switch(typeof resourceParse) {
-    case 'object': {
-      const parseMethod = resourceParse && resourceParse[resourceType]
-      if (!parseMethod) { return json }
-
-      return parseMethod(json)
-    }
-    case 'function': {
-      return resourceParse(json)
-    }
-    default: {
-      return json
-    }
-  }
-}
-
 const constructUrl = ({domain, controller, railsAction, data}) => {
   const resourceType = determineResourceType({controller})
   const urlTail = () => {
@@ -62,6 +41,19 @@ const constructfetchOptions = ({railsAction, resource, config, data, fetchParams
   }
 
   return options
+}
+
+const enqueueFetch = (resource, fetchData) => {
+  // adds fetch request to queue by resource
+  // and intializes the queue if needed
+  const resourceQueue = getResourceQueue({resource})
+
+  resourceQueue.push(fetchData)
+
+  if (resourceQueue.length <= 1) {
+    // this is the only queued fetch, so start the queue
+    fetchResource(fetchData)
+  }
 }
 
 const fetchResource = ({store, resource, config, data={}, railsAction, controllerOverride, fetchParamsOverride}) => {
@@ -119,28 +111,43 @@ const fetchResource = ({store, resource, config, data={}, railsAction, controlle
       store.dispatch({ type, error, id: data.id, cId })
     })
     .then(() => {
-      // take this fetch off the queue
-      fetchQueue[resource].queue.shift()
+      const resourceQueue = getResourceQueue({resource})
 
-      if (fetchQueue[resource].queue.length > 0) {
-        fetchResource(fetchQueue[resource].queue[0])
+      // take this fetch off the queue
+      resourceQueue.shift()
+
+      if (resourceQueue.length > 0) {
+        fetchResource(resourceQueue[0])
       }
     })
 }
 
-const enqueueFetch = (resource, fetchData) => {
+const getResourceQueue = ({resource}) => {
   if (!fetchQueue[resource]) {
-    fetchQueue[resource] = {
-      queue: [],
-      fetching: false
-    }
+    fetchQueue[resource] = { queue: [] }
   }
 
-  fetchQueue[resource].queue.push(fetchData)
+  return fetchQueue[resource].queue
+}
 
-  if (fetchQueue[resource].queue.length <= 1) {
-    // this is the only queued fetch, so start the queue
-    fetchResource(fetchData)
+const parseResult = ({json, resource, config, resourceType}) => {
+  const resourceParse = config.resources[resource].parse
+
+  // parse methods can be defined per resousrce type or
+  // as a catchall for all resource types
+  switch(typeof resourceParse) {
+    case 'object': {
+      const parseMethod = resourceParse && resourceParse[resourceType]
+      if (!parseMethod) { return json }
+
+      return parseMethod(json)
+    }
+    case 'function': {
+      return resourceParse(json)
+    }
+    default: {
+      return json
+    }
   }
 }
 
@@ -149,8 +156,17 @@ export default (config) => {
     return (action) => {
       const [ resource, railsAction ] = action.type.split('.')
       const { data, controller, fetchParams } = action
-      if (config.resources[resource] && actionMethodMap[railsAction]) {
-        enqueueFetch(resource, {store, resource, config, data, railsAction, controllerOverride: controller, fetchParamsOverride: fetchParams})
+      const fetchData = {store, resource, config, data, railsAction, controllerOverride: controller, fetchParamsOverride: fetchParams}
+      const resourceConfig = config.resources[resource]
+
+      if (resourceConfig && actionMethodMap[railsAction]) {
+
+        if (config.disableFetchQueueing || resourceConfig.disableFetchQueueing) {
+          // Fetch queueing disabled, let the fetch run immediately
+          fetchResource(fetchData)
+        } else {
+          enqueueFetch(resource, fetchData)
+        }
       }
 
       return next(action)
