@@ -1,7 +1,7 @@
 {
   "name": "redux-rails",
   "version": "0.0.1",
-  "description": "",
+  "description": "Redux and your server talking without fuss.",
   "main": "src/index.js",
   "repository": {
     "type": "git",
@@ -15,13 +15,11 @@
   },
   "author": "Dominic Cocchiarella (http://github.com/dcocchia)",
   "license": "MIT",
-  "dependencies": {
-    "babel-core": "^6.21.0"
-  },
   "peerDependencies": {
     "redux": ">=3.6.0"
   },
   "devDependencies": {
+    "babel-core": "^6.21.0",
     "babel-jest": "^18.0.0",
     "babel-loader": "^6.2.10",
     "babel-polyfill": "^6.22.0",
