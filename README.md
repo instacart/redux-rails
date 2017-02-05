@@ -479,6 +479,10 @@ const apiConfig = {
       },
       idAttribute: '_id',
       domain: 'https://your-OTHER-site-url.com/api/'
+    },
+    User: {
+      controller: 'user',
+      disableFetchQueueing: true
     }
   },
   fetchParams: {
@@ -594,6 +598,11 @@ Url domain for your resource(s). If you'd like a different domain for a specific
 These are the options sent to the `Fetch` call when making any call to your api. These map directly to the options available in the [Fetch Request object](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request).
 
 This is where you would set your headers or credentials, for example. This can be set per resource or top-level. Each config, if you're using mutliple configs, can also have their own settings.
+
+### disableFetchQueueing
+Fetch queueing can be disabled per config or per resource. Resources with fetch queueing disabled will not execute actions in the order they were called, but will instead execute actions in the order they are received from the server. *This makes your app susceptible to race conditions.* For example, if a user edits a posts and then edits it again very quickly, the first edit may return from the server after the second, giving the user a false representation of the post's state on the server. 
+
+*It's highly recommended that fetch queueing remain enabled unless you are very aware of the consequences.*
 
 ### Using multiple configs
 Multiple configs can be used throughout your Redux store's hierarchy. Use `combineConfigs` to do this.
