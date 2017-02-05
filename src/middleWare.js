@@ -4,6 +4,8 @@ import {
   getUniqueClientId
  } from './utilities'
 
+ let fetchQueue = {}
+
  const actionMethodMap = {
    SHOW    : 'GET',
    INDEX   : 'GET',
@@ -116,6 +118,30 @@ const fetchResource = ({store, resource, config, data={}, railsAction, controlle
       const type = `${resource}.${railsAction}_ERROR`
       store.dispatch({ type, error, id: data.id, cId })
     })
+    .then(() => {
+      // take this fetch off the queue
+      fetchQueue[resource].queue.shift()
+
+      if (fetchQueue[resource].queue.length > 0) {
+        fetchResource(fetchQueue[resource].queue[0])
+      }
+    })
+}
+
+const enqueueFetch = (resource, fetchData) => {
+  if (!fetchQueue[resource]) {
+    fetchQueue[resource] = {
+      queue: [],
+      fetching: false
+    }
+  }
+
+  fetchQueue[resource].queue.push(fetchData)
+
+  if (fetchQueue[resource].queue.length <= 1) {
+    // this is the only queued fetch, so start the queue
+    fetchResource(fetchData)
+  }
 }
 
 export default (config) => {
@@ -124,7 +150,7 @@ export default (config) => {
       const [ resource, railsAction ] = action.type.split('.')
       const { data, controller, fetchParams } = action
       if (config.resources[resource] && actionMethodMap[railsAction]) {
-        fetchResource({store, resource, config, data, railsAction, controllerOverride: controller, fetchParamsOverride: fetchParams})
+        enqueueFetch(resource, {store, resource, config, data, railsAction, controllerOverride: controller, fetchParamsOverride: fetchParams})
       }
 
       return next(action)
