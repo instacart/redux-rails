@@ -3,8 +3,8 @@ import apiReducer from '../src/apiReducer'
 import middleWare from '../src/middleWare'
 import { standardConfig, configWithParse, configWithBadCollectionParse } from './apiReducer/exampleConfigs'
 import nock from 'nock'
-import fetch from 'node-fetch'
-window.fetch = fetch
+require('es6-promise').polyfill();
+require('isomorphic-fetch');
 
 const reduxRailsMiddleware = middleWare(standardConfig)
 const standardReducer = apiReducer(standardConfig)
@@ -699,9 +699,3 @@ describe('middleWare', () => {
 
 
 })
-
-
-// {id: 42, text: 'Hello'},
-// {id: 43, text: 'Hi!'},
-// {id: 44, text: 'Is that all you really have to say after what you\'ve done?'},
-// {id: 45, text: '...I just met you, like, three minutes ago.'}

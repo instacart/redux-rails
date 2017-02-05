@@ -47,11 +47,12 @@ const constructUrl = ({domain, controller, railsAction, data}) => {
   return `${domain}${controller}${urlTail()}`
 }
 
-const constructfetchOptions = ({railsAction, resource, config, data}) => {
+const constructfetchOptions = ({railsAction, resource, config, data, fetchParams}) => {
   // options available match request the fetch Request object:
   // https://developer.mozilla.org/en-US/docs/Web/API/Request/Request
   const method = actionMethodMap[railsAction]
-  let options = Object.assign({}, config.fetchParams, { method })
+  const headers = new Headers(fetchParams.headers || {})
+  let options = Object.assign({}, fetchParams, { method, headers })
 
   // assume the body is meant to be JSON. Fetch requires you to Stringify JSON
   if (typeof data === 'object' && method !== 'GET') {
@@ -61,11 +62,12 @@ const constructfetchOptions = ({railsAction, resource, config, data}) => {
   return options
 }
 
-const fetchResource = ({store, resource, config, data={}, railsAction, controllerOverride}) => {
+const fetchResource = ({store, resource, config, data={}, railsAction, controllerOverride, fetchParamsOverride}) => {
   const resourceConfig = config.resources[resource]
   const domain = resourceConfig.domain || config.domain
   const controller = controllerOverride || resourceConfig.controller
   const idAttribute = getResourceIdAttribute({config, resource})
+  const fetchParams = fetchParamsOverride || resourceConfig.fetchParams || config.fetchParams
   let cId
 
   if (railsAction === 'CREATE') {
@@ -76,7 +78,7 @@ const fetchResource = ({store, resource, config, data={}, railsAction, controlle
 
   fetch(
     constructUrl({domain, controller, railsAction, data}),
-    constructfetchOptions({railsAction, resource, data, config})
+    constructfetchOptions({railsAction, resource, data, config, fetchParams})
   )
     .then((response) => {
       response.json()
@@ -120,9 +122,9 @@ export default (config) => {
   return (store) => (next) => {
     return (action) => {
       const [ resource, railsAction ] = action.type.split('.')
-      const { data, controller } = action
+      const { data, controller, fetchParams } = action
       if (config.resources[resource] && actionMethodMap[railsAction]) {
-        fetchResource({store, resource, config, data, railsAction, controllerOverride: controller})
+        fetchResource({store, resource, config, data, railsAction, controllerOverride: controller, fetchParamsOverride: fetchParams})
       }
 
       return next(action)
