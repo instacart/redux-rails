@@ -1,9 +1,11 @@
-import { standardConfig, configWithModelsReady } from './exampleConfigs'
+import { standardConfig, configWithCustomReducer, configWithModelsReady } from './exampleConfigs'
 import { apiReducer, railsActions } from 'redux-rails'
 
 describe('apiReducer', () => {
 
   const standardReducer = apiReducer(standardConfig)
+  const customReducer = apiReducer(configWithCustomReducer)
+
 
   it('should return correct intial state', () => {
     expect(
@@ -74,6 +76,37 @@ describe('apiReducer', () => {
             {loading: false, loadingError: undefined, id: 5, attributes: {'_@@aid': 5, foo: 'bar5'}},
             {loading: false, loadingError: undefined, id: 6, attributes: {'_@@aid': 6, foo: 'bar6'}}
           ]
+        }
+      }
+    )
+  })
+
+  it('should return correct intial state when using custom reducer', () => {
+    expect(
+      customReducer(undefined, {})
+    ).toEqual(
+      {
+        Comments: {
+          loading: false,
+          loadingError: undefined,
+          models: []
+        }
+      }
+    )
+  })
+
+  it('should return correct state when using action for custom reducer', () => {
+    expect(
+      customReducer(undefined, {
+        type: 'Comments.CUSTOM_ACTION'
+      })
+    ).toEqual(
+      {
+        Comments: {
+          loading: false,
+          loadingError: undefined,
+          models: [],
+          customAttribute: 'CUSTOM ACTION WUZ HERE'
         }
       }
     )

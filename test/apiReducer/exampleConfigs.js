@@ -80,3 +80,29 @@ export const configWithBadCollectionParse = {
     }
   }
 }
+
+export const configWithCustomReducer = {
+  domain: 'http://localhost:3000/',
+  resources: {
+    Comments: {
+      controller: 'comments',
+      reducer: (state, action) => {
+        switch(action.type) {
+          case 'Comments.CUSTOM_ACTION': {
+            return Object.assign({}, state, {
+              customAttribute: 'CUSTOM ACTION WUZ HERE'
+            })
+          }
+          default: {
+            return state
+          }
+        }
+      }
+    }
+  },
+  fetchParams: {
+    headers: {
+      'content-type':'application/json'
+    }
+  }
+}

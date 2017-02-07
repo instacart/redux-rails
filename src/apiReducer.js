@@ -188,239 +188,247 @@ const getInitialState = ({config, resource}) => {
 
 // main reducer
 export default (config) => {
-    const reducers = {}
-    Object.keys(config.resources).forEach((resource) => {
-      reducers[resource] = (state = getInitialState({config, resource}), action) => {
-        const resourceNameSpace = getResourceNameSpace({config, resource})
-        const isSingleModel = resourceNameSpace === 'attributes'
-        const idAttribute = getResourceIdAttribute({config, resource})
+  const reducers = {}
 
-        switch(action.type) {
-          case `${resource}.INDEX`: {
-            return Object.assign({}, state, createNewCollection({
-              metaData: {
-                loading: true
-              }
-            }))
-          }
-          case `${resource}.INDEX_SUCCESS`: {
-            if (!Array.isArray(action.response)) {
-              console.error('Response to INDEX actions must be of type array. You can use the parse methods to transform data if needed.')
+  Object.keys(config.resources).forEach((resource) => {
+    reducers[resource] = (state = getInitialState({config, resource}), action) => {
+      const resourceNameSpace = getResourceNameSpace({config, resource})
+      const isSingleModel = resourceNameSpace === 'attributes'
+      const idAttribute = getResourceIdAttribute({config, resource})
 
-              return Object.assign({}, state, createNewCollection({
-                metaData: {
-                  loading: false,
-                  loadingError: 'Bad data received from server. INDEX calls expect an array.'
-                }
-              }))
+      switch(action.type) {
+        case `${resource}.INDEX`: {
+          return Object.assign({}, state, createNewCollection({
+            metaData: {
+              loading: true
             }
-
-            return Object.assign({}, state, createNewCollection({
-              models: action.response.map(model => createNewModel({
-                id: model[idAttribute],
-                attributes: model
-              }))
-            }))
-          }
-          case `${resource}.INDEX_ERROR`: {
-            const { error } = action
+          }))
+        }
+        case `${resource}.INDEX_SUCCESS`: {
+          if (!Array.isArray(action.response)) {
+            console.error('Response to INDEX actions must be of type array. You can use the parse methods to transform data if needed.')
 
             return Object.assign({}, state, createNewCollection({
               metaData: {
                 loading: false,
-                loadingError: error
+                loadingError: 'Bad data received from server. INDEX calls expect an array.'
               }
             }))
           }
-          case `${resource}.SHOW`: {
-            const data = action.data || {}
-            const { id } = data
 
-            if (isSingleModel) {
-              return createNewModel({
-                metaData: { loading: true },
-                attributes: state.attributes
-              })
-            }
-
-            return Object.assign({}, state, {
-              models: setMemberLoading({id, state})
-            })
-          }
-          case `${resource}.SHOW_SUCCESS`: {
-            const { id } = action
-            const data = action.response
-
-            if (isSingleModel) {
-              return createNewModel({id,
-                attributes: Object.assign({}, state.attributes, data)
-              })
-            }
-
-            return Object.assign({}, state, createNewCollection({
-              models: replaceMemberAttributes({id, data, state,
-                metaData: { loading: false }
-              })
+          return Object.assign({}, state, createNewCollection({
+            models: action.response.map(model => createNewModel({
+              id: model[idAttribute],
+              attributes: model
             }))
-          }
-          case `${resource}.SHOW_ERROR`: {
-            const { id, error } = action
+          }))
+        }
+        case `${resource}.INDEX_ERROR`: {
+          const { error } = action
 
-            if (isSingleModel) {
-              return createNewModel({id,
-                attributes: Object.assign({}, state.attributes),
-                metaData: { loadingError: error }
-              })
+          return Object.assign({}, state, createNewCollection({
+            metaData: {
+              loading: false,
+              loadingError: error
             }
+          }))
+        }
+        case `${resource}.SHOW`: {
+          const data = action.data || {}
+          const { id } = data
 
+          if (isSingleModel) {
+            return createNewModel({
+              metaData: { loading: true },
+              attributes: state.attributes
+            })
+          }
+
+          return Object.assign({}, state, {
+            models: setMemberLoading({id, state})
+          })
+        }
+        case `${resource}.SHOW_SUCCESS`: {
+          const { id } = action
+          const data = action.response
+
+          if (isSingleModel) {
+            return createNewModel({id,
+              attributes: Object.assign({}, state.attributes, data)
+            })
+          }
+
+          return Object.assign({}, state, createNewCollection({
+            models: replaceMemberAttributes({id, data, state,
+              metaData: { loading: false }
+            })
+          }))
+        }
+        case `${resource}.SHOW_ERROR`: {
+          const { id, error } = action
+
+          if (isSingleModel) {
+            return createNewModel({id,
+              attributes: Object.assign({}, state.attributes),
+              metaData: { loadingError: error }
+            })
+          }
+
+          return Object.assign({}, state, {
+            models: setMemberLoadingError({state, id, error})
+          })
+        }
+        case `${resource}.ASSIGN_CID`: {
+          const { cId } = action
+
+          if (isSingleModel) {
+            return createNewModel({cId})
+          }
+
+          return createNewCollection({
+            models: replaceMemberAttributes({cId, state})
+          })
+        }
+        case `${resource}.CREATE_SUCCESS`: {
+          const data = action.response
+          const { cId, id } = action
+
+          if (isSingleModel) {
+            return createNewModel({id, cId,
+              attributes: Object.assign({}, state.attributes, data)
+            })
+          }
+
+          return createNewCollection({
+            models: replaceMemberAttributes({data, state, id, cId})
+          })
+        }
+        case `${resource}.CREATE_ERROR`: {
+          const { id, cId, error } = action
+
+          if (isSingleModel) {
+            return createNewModel({id, cId,
+              metaData: { loadingError: error }
+            })
+          }
+
+          return Object.assign({}, state, {
+            models: setMemberLoadingError({state, id, cId, error})
+          })
+        }
+        case `${resource}.UPDATE`: {
+          const data = action.data || {}
+          const { id } = data
+
+          if (isSingleModel) {
+            return createNewModel({id,
+              metaData: { loading: true },
+              attributes: state.attributes
+            })
+          }
+
+          return Object.assign({}, state, {
+            models: setMemberLoading({id, state})
+          })
+        }
+        case `${resource}.UPDATE_SUCCESS`: {
+          const { id } = action
+          const data = action.response
+
+          if (isSingleModel) {
+            return createNewModel({id,
+              attributes: Object.assign({}, state.attributes, data)
+            })
+          }
+
+          return Object.assign({}, state, {
+            models: updateMemberAttributes({id, data, state})
+          })
+        }
+        case `${resource}.UPDATE_ERROR`: {
+          const { id, error } = action
+
+          if (isSingleModel) {
+            return createNewModel({id,
+              attributes: state.attributes,
+              metaData: { loadingError: error }
+            })
+          }
+
+          return Object.assign({}, state, {
+            models: setMemberLoadingError({state, id, error})
+          })
+        }
+        case `${resource}.DESTROY`: {
+          const data = action.data || {}
+          const id = data.id || state.id
+
+          if (isSingleModel) {
+            return createNewModel({id,
+              attributes: state.attributes,
+              metaData: { loading: true }
+            })
+          }
+
+          return Object.assign({}, state, {
+            models: setMemberLoading({idAttribute, id, state})
+          })
+        }
+        case `${resource}.DESTROY_SUCCESS`: {
+          const { id } = action
+
+          if (isSingleModel) {
+            return null
+          }
+
+          return Object.assign({}, state, {
+            models: destroyMember({idAttribute, id, state})
+          })
+        }
+        case `${resource}.DESTROY_ERROR`: {
+          const { id, error } = action
+
+          if (isSingleModel) {
             return Object.assign({}, state, {
-              models: setMemberLoadingError({state, id, error})
+              loading: false,
+              loadingError: error
             })
           }
-          case `${resource}.ASSIGN_CID`: {
-            const { cId } = action
 
-            if (isSingleModel) {
-              return createNewModel({cId})
-            }
+          return Object.assign({}, state, {
+            models: setMemberLoadingError({state, id, idAttribute, error})
+          })
+        }
+        case `${resource}.SET_LOADING`: {
+          // generally loading state is set in the base rails action,
+          // but this is useful for resources being created on client
+          const { id, cId } = action
 
-            return createNewCollection({
-              models: replaceMemberAttributes({cId, state})
-            })
-          }
-          case `${resource}.CREATE_SUCCESS`: {
-            const data = action.response
-            const { cId, id } = action
-
-            if (isSingleModel) {
-              return createNewModel({id, cId,
-                attributes: Object.assign({}, state.attributes, data)
-              })
-            }
-
-            return createNewCollection({
-              models: replaceMemberAttributes({data, state, id, cId})
-            })
-          }
-          case `${resource}.CREATE_ERROR`: {
-            const { id, cId, error } = action
-
-            if (isSingleModel) {
-              return createNewModel({id, cId,
-                metaData: { loadingError: error }
-              })
-            }
-
+          if (isSingleModel) {
             return Object.assign({}, state, {
-              models: setMemberLoadingError({state, id, cId, error})
+              loading: true,
+              loadingError: undefined
             })
           }
-          case `${resource}.UPDATE`: {
-            const data = action.data || {}
-            const { id } = data
 
-            if (isSingleModel) {
-              return createNewModel({id,
-                metaData: { loading: true },
-                attributes: state.attributes
-              })
-            }
+          return Object.assign({}, state, {
+            models: setMemberLoading({idAttribute, id, cId, state})
+          })
 
-            return Object.assign({}, state, {
-              models: setMemberLoading({id, state})
-            })
+        }
+        default: {
+          const resourceConfig = config.resources[resource]
+
+          if (resourceConfig && resourceConfig.reducer) {
+            // additional action handlers supplied through config
+            return resourceConfig.reducer(state, action)
           }
-          case `${resource}.UPDATE_SUCCESS`: {
-            const { id } = action
-            const data = action.response
 
-            if (isSingleModel) {
-              return createNewModel({id,
-                attributes: Object.assign({}, state.attributes, data)
-              })
-            }
-
-            return Object.assign({}, state, {
-              models: updateMemberAttributes({id, data, state})
-            })
-          }
-          case `${resource}.UPDATE_ERROR`: {
-            const { id, error } = action
-
-            if (isSingleModel) {
-              return createNewModel({id,
-                attributes: state.attributes,
-                metaData: { loadingError: error }
-              })
-            }
-
-            return Object.assign({}, state, {
-              models: setMemberLoadingError({state, id, error})
-            })
-          }
-          case `${resource}.DESTROY`: {
-            const data = action.data || {}
-            const id = data.id || state.id
-
-            if (isSingleModel) {
-              return createNewModel({id,
-                attributes: state.attributes,
-                metaData: { loading: true }
-              })
-            }
-
-            return Object.assign({}, state, {
-              models: setMemberLoading({idAttribute, id, state})
-            })
-          }
-          case `${resource}.DESTROY_SUCCESS`: {
-            const { id } = action
-
-            if (isSingleModel) {
-              return null
-            }
-
-            return Object.assign({}, state, {
-              models: destroyMember({idAttribute, id, state})
-            })
-          }
-          case `${resource}.DESTROY_ERROR`: {
-            const { id, error } = action
-
-            if (isSingleModel) {
-              return Object.assign({}, state, {
-                loading: false,
-                loadingError: error
-              })
-            }
-
-            return Object.assign({}, state, {
-              models: setMemberLoadingError({state, id, idAttribute, error})
-            })
-          }
-          case `${resource}.SET_LOADING`: {
-            // generally loading state is set in the base rails action,
-            // but this is useful for resources being created on client
-            const { id, cId } = action
-
-            if (isSingleModel) {
-              return Object.assign({}, state, {
-                loading: true,
-                loadingError: undefined
-              })
-            }
-
-            return Object.assign({}, state, {
-              models: setMemberLoading({idAttribute, id, cId, state})
-            })
-
-          }
-          default: {
-            return state
-          }
+          return state
         }
       }
-    })
+    }
+  })
 
-    return combineReducers(reducers)
-  }
+  return combineReducers(reducers)
+}
