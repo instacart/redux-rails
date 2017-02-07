@@ -482,7 +482,19 @@ const apiConfig = {
     },
     User: {
       controller: 'user',
-      disableFetchQueueing: true
+      disableFetchQueueing: true,
+      reducer: (state={}, action) => {
+        switch(action.type) {
+          case 'User.SOME_CUSTOM_ACTION': {
+            return Object.assign({}, state, {
+              myPersonalStateChange: 'I can add on to the Redux Rails default reducer!'
+            })
+          }
+          default: {
+            return state
+          }
+        }
+      }
     }
   },
   fetchParams: {
@@ -603,6 +615,51 @@ This is where you would set your headers or credentials, for example. This can b
 Fetch queueing can be disabled per config or per resource. Resources with fetch queueing disabled will not execute actions in the order they were called, but will instead execute actions in the order they are received from the server. *This makes your app susceptible to race conditions.* For example, if a user edits a posts and then edits it again very quickly, the first edit may return from the server after the second, giving the user a false representation of the post's state on the server. 
 
 *It's highly recommended that fetch queueing remain enabled unless you are very aware of the consequences.*
+
+### reducer
+If you'd like to add additional functionality to your resources, you can pass in a reducer per resource. For example, if you have a resource, `comments`, on the server and you want all of the default functionality given to you through Redux Rails but you also want a way to set some client-side state:
+
+```js
+const apiConfig = {
+  domain: 'https://your-site-url.com/api/',
+  resources: {
+    Comments: {
+      controller: 'comments',
+      reducer: (state={}, action) => {
+        switch(action.type) {
+          case 'Comments.MY_OWN_ACTION': {
+            return Object.assign({}, state, {
+              myAttribute: true
+            })
+          }
+          default: {
+            return state
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+Of course, you can also create a large, richly defined reducer and simply import it and pass it along. Your own reducer may be as large or small as you need it to be.
+
+
+```js
+import myCommentsReducer from 'my/comments/reducer'
+
+const apiConfig = {
+  domain: 'https://your-site-url.com/api/',
+  resources: {
+    Comments: {
+      controller: 'comments',
+      reducer: myCommentsReducer
+    }
+  }
+}
+```
+
+The same rules that apply to a regular Reducer apply to the reducer here ie. it must return state as a default case. 
 
 ### Using multiple configs
 Multiple configs can be used throughout your Redux store's hierarchy. Use `combineConfigs` to do this.
