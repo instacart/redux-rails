@@ -594,15 +594,20 @@ App.dispatch(railsActions.index({resource: 'Posts'}))
 
 // if the response returns an array, this array will be used directly in the redux store, as expected.
 // response: [ {}, {}, {} ]
-App.getState().resources.Posts // [ {}, {}, {} ]
+App.getState().resources.Posts // { loading: false, models: [ {}, {}, {} ] }
 
 // if the response returns an object with an array under a key matching the resource name, that will be used
 // response: { Posts: [ {}, {}, {} ] }
-App.getState().resources.Posts // [ {}, {}, {} ]
+App.getState().resources.Posts // { loading: false, models: [ {}, {}, {} ] }
 
 // the resource name is not case sensitive here, so you can name your resource `Posts` but still use the key `posts`
-{ posts: [ {}, {}, {} ] }
-App.getState().resources.Posts // [ {}, {}, {} ]
+// response: { posts: [ {}, {}, {} ] }
+
+App.getState().resources.Posts // { loading: false, models: [ {}, {}, {} ] }
+
+// if it does not find an array in any of these cases, it will set an error
+// response: { posts: {...} }
+App.getState().resources.Posts // { loading: false, loadingError: 'Bad data received from server. INDEX calls expect an array.', models: [] }
 ```
 
 #### idAttribute (optional)
