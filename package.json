@@ -10,8 +10,8 @@
   "scripts": {
     "start": "webpack --progress --watch --config webpack.config.js src/index.js dist/redux-rails.js",
     "build": "npm test && webpack --progress --config webpack.config.js src/index.js dist/redux-rails.js",
-    "test": "jest --coverage",
-    "test:watch": "npm test -- --watch"
+    "test": "jest --coverage --silent",
+    "test:watch": "npm test -- --watch --bail"
   },
   "author": "Dominic Cocchiarella (http://github.com/dcocchia)",
   "license": "MIT",
