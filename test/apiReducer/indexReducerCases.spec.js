@@ -142,4 +142,29 @@ describe('INDEX actions', () => {
     )
   })
 
+  it('should correctly look for top level key matching lower case resource name and use as data', () => {
+    indexReducerState = indexReducer(indexReducerState, {
+      type: 'Posts.INDEX_SUCCESS',
+      response: {posts: [{id: 8, foo: 'bar8'}, {id: 9, foo: 'bar9'}, {id: 10, foo: 'bar10'}]}
+    })
+    expect(indexReducerState).toEqual(
+      {
+        Posts: {
+          loading: false,
+          loadingError: undefined,
+          models: [
+            {loading: false, loadingError: undefined, id: 8, attributes: {id: 8, foo: 'bar8'}},
+            {loading: false, loadingError: undefined, id: 9, attributes: {id: 9, foo: 'bar9'}},
+            {loading: false, loadingError: undefined, id: 10, attributes: {id: 10, foo: 'bar10'}}
+          ]
+        },
+        User: {
+          loading: false,
+          loadingError: undefined,
+          attributes: {}
+        }
+      }
+    )
+  })
+
 })

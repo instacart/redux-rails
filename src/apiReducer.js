@@ -206,7 +206,7 @@ export default (config) => {
         }
         case `${resource}.INDEX_SUCCESS`: {
           let response = action.response
-          const responseResource = action.response[resource]
+          const responseResource = action.response[resource] || action.response[resource.toLowerCase()]
 
           if (!Array.isArray(action.response)) {
             if (responseResource && Array.isArray(responseResource)) {
