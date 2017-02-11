@@ -199,7 +199,7 @@ describe('CREATE actions', () => {
 
   describe('CREATE actions with custom idAttribute', () => {
     const customIdConfig = {
-      domain: 'http://localhost:3000/',
+      baseUrl: 'http://localhost:3000/',
       resources: {
         Posts: {
           controller: 'posts',

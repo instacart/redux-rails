@@ -1,5 +1,5 @@
 export const standardConfig = {
-  domain: 'http://localhost:3000/',
+  baseUrl: 'http://localhost:3000/',
   resources: {
     Posts: {
       controller: 'posts'
@@ -24,7 +24,7 @@ export const commentsConfig = {
 }
 
 export const configWithModelsReady = {
-  domain: 'http://localhost:3000/',
+  baseUrl: 'http://localhost:3000/',
   resources: {
     Posts: {
       controller: 'posts',
@@ -38,7 +38,7 @@ export const configWithModelsReady = {
 }
 
 export const configWithParse = {
-  domain: 'http://localhost:3000/',
+  baseUrl: 'http://localhost:3000/',
   resources: {
     Posts: {
       controller: 'posts',
@@ -60,7 +60,7 @@ export const configWithParse = {
 }
 
 export const configWithBadCollectionParse = {
-  domain: 'http://localhost:3000/',
+  baseUrl: 'http://localhost:3000/',
   resources: {
     Posts: {
       controller: 'posts',
@@ -82,7 +82,7 @@ export const configWithBadCollectionParse = {
 }
 
 export const configWithCustomReducer = {
-  domain: 'http://localhost:3000/',
+  baseUrl: 'http://localhost:3000/',
   resources: {
     Comments: {
       controller: 'comments',
