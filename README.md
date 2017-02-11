@@ -587,6 +587,23 @@ const apiConfig = {
 }
 ```
 
+> Note: Index calls will automatically look for and use an array at the top-level key matching the name of your resource, if the response it receives is not an array.
+```js
+App.dispatch(railsActions.index({resource: 'Posts'}))
+
+// if the response returns an array, this array will be used directly in the redux store, as expected.
+// response: [ {}, {}, {} ]
+App.getState().resources.Posts // [ {}, {}, {} ]
+
+// if the response returns an object with an array under a key matching the resource name, that will be used
+// response: { Posts: [ {}, {}, {} ] }
+App.getState().resources.Posts // [ {}, {}, {} ]
+
+// the resource name is not case sensitive here, so you can name your resource `Posts` but still use the key `posts`
+{ posts: [ {}, {}, {} ] }
+```
+App.getState().resources.Posts // [ {}, {}, {} ]
+
 #### idAttribute (optional)
 This is defaulted to `id` and tells Redux Rails which attribute on your resource is the unique identifier. If your api assigns ids to the attribute `_@@id`, for example, you would set `idAttribute` to `_@@id` for that specific resource or for all resources in the config. Models still get `id` set as metadata no matter the `idAttribute` setting.
 
