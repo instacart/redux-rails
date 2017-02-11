@@ -32,6 +32,7 @@ const dispatchWithStoreOf = (storeData, action) => {
 
 // Index
 nock('http://localhost:3000')
+  .persist()
   .get('/posts')
   .reply(200, [
     {id: 123, title: 'How to test'},
@@ -40,15 +41,7 @@ nock('http://localhost:3000')
   ]);
 
 nock('http://localhost:3000')
-  .get('/comments')
-  .reply(200, [
-    {id: 42, text: 'Hello'},
-    {id: 43, text: 'Hi!'},
-    {id: 44, text: 'Is that all you really have to say after what you\'ve done?'},
-    {id: 45, text: '...I just met you, like, three minutes ago.'}
-  ]);
-
-nock('http://localhost:3000')
+  .persist()
   .get('/comments')
   .reply(200, [
     {id: 42, text: 'Hello'},
@@ -59,32 +52,39 @@ nock('http://localhost:3000')
 
 // Show
 nock('http://localhost:3000')
+  .persist()
   .get('/posts/3')
   .reply(200, {id: 3, title: 'Post #3 is #1 the best!'});
 
 nock('http://localhost:3000')
+  .persist()
   .get('/posts/555')
   .reply(200, {id: 555, title: 'Real area code'});
 
 nock('http://localhost:3000')
+  .persist()
   .get('/comments/42')
   .reply(200, {id: 42, title: 'This joke again?'});
 
 nock('http://localhost:3000')
+  .persist()
   .get('/comments/666')
   .reply(200, 'this is not json');
 
 nock('http://localhost:3000')
+  .persist()
   .get('/posts/667')
   .reply(200);
 
 // Create
 nock('http://localhost:3000')
+  .persist()
   .post('/posts')
   .reply(200, {id: 101, title: 'So many dalmations'});
 
 // Update
 nock('http://localhost:3000')
+  .persist()
   .put('/posts/125')
   .reply(200, {
     id: 125,
@@ -93,11 +93,13 @@ nock('http://localhost:3000')
 
 // Destroy
 nock('http://localhost:3000')
+  .persist()
   .delete('/posts/3')
   .reply(200, {});
 
 // Destroy Error
 nock('http://localhost:3000')
+  .persist()
   .delete('/posts/123')
   .reply(500, { message: 'that was a bad move.'});
 
@@ -109,7 +111,7 @@ describe('middleWare', () => {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
         resolve(siteApp.getState())
-      }, 10)
+      }, 50)
     })
   }
 

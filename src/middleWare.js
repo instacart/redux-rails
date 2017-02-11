@@ -14,7 +14,7 @@ import {
    DESTROY : 'DELETE',
  }
 
-const constructUrl = ({domain, controller, railsAction, data}) => {
+const constructUrl = ({baseUrl, controller, railsAction, data}) => {
   const resourceType = determineResourceType({controller})
   const urlTail = () => {
     // all actions on a collection, other than index and create, require an id
@@ -25,7 +25,7 @@ const constructUrl = ({domain, controller, railsAction, data}) => {
     return ''
   }
 
-  return `${domain}${controller}${urlTail()}`
+  return `${baseUrl}${controller}${urlTail()}`
 }
 
 const constructfetchOptions = ({railsAction, resource, config, data, fetchParams}) => {
@@ -58,7 +58,7 @@ const enqueueFetch = (resource, fetchData) => {
 
 const fetchResource = ({store, resource, config, data={}, railsAction, controllerOverride, fetchParamsOverride}) => {
   const resourceConfig = config.resources[resource]
-  const domain = resourceConfig.domain || config.domain
+  const baseUrl = resourceConfig.baseUrl || config.baseUrl
   const controller = controllerOverride || resourceConfig.controller
   const idAttribute = getResourceIdAttribute({config, resource})
   const fetchParams = fetchParamsOverride || resourceConfig.fetchParams || config.fetchParams
@@ -71,7 +71,7 @@ const fetchResource = ({store, resource, config, data={}, railsAction, controlle
   }
 
   fetch(
-    constructUrl({domain, controller, railsAction, data}),
+    constructUrl({baseUrl, controller, railsAction, data}),
     constructfetchOptions({railsAction, resource, data, config, fetchParams})
   )
     .then((response) => {

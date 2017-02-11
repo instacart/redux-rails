@@ -24,7 +24,7 @@ const counterReducer = (state = counterReducerStartingState, action) => {
 }
 
 // const apiConfig = {
-//   domain: 'http://localhost:3000/v3/',
+//   baseUrl: 'http://localhost:3000/v3/',
 //   resources: {
 //     Users: {
 //       controller: 'addresses', // knows to do addresses/${idAttribute}
@@ -47,7 +47,7 @@ const counterReducer = (state = counterReducerStartingState, action) => {
 //     }
 //     PaymentMethods: {
 //       controller: 'payment_methods',
-//       domain: 'https://api.instacart.com/v2/' // can override domain per resource
+//       baseUrl: 'https://api.instacart.com/v2/' // can override baseUrl per resource
 //     }
 //   },
 //   fetchParams: {
@@ -56,7 +56,7 @@ const counterReducer = (state = counterReducerStartingState, action) => {
 // }
 
 const apiConfig = {
-  domain: 'http://localhost:3000/',
+  baseUrl: 'http://localhost:3000/',
   resources: {
     Posts: {
       controller: 'posts'
@@ -73,7 +73,7 @@ const apiConfig = {
 }
 
 const defaultConfig = {
-  domain: 'http://localhost:3000/',
+  baseUrl: 'http://localhost:3000/',
   fetchParams: {
     headers: {
       'content-type':'application/json'

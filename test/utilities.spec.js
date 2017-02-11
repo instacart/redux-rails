@@ -19,7 +19,7 @@ describe('utilities', () => {
 
   describe('getResourceNameSpace', () => {
     const config1 = {
-      domain: 'http://localhost:3000/',
+      baseUrl: 'http://localhost:3000/',
       resources: {
         Posts: {
           controller: 'posts'
@@ -30,7 +30,7 @@ describe('utilities', () => {
       }
     }
     const config2 = {
-      domain: 'http://localhost:3000/',
+      baseUrl: 'http://localhost:3000/',
       resources: {
         Posts: {
           controller: 'retailers'
@@ -58,7 +58,7 @@ describe('utilities', () => {
 
   describe('getResourceIdAttribute', () => {
     const config = {
-      domain: 'http://localhost:3000/',
+      baseUrl: 'http://localhost:3000/',
       resources: {
         Posts: {
           controller: 'posts',
