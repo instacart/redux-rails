@@ -2,7 +2,7 @@ import { apiReducer, railsActions } from 'redux-rails'
 
 describe('DESTROY actions', () => {
   const destroyConfig = {
-    domain: 'http://localhost:3000/',
+    baseUrl: 'http://localhost:3000/',
     resources: {
       Posts: {
         controller: 'posts',

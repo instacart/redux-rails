@@ -25,7 +25,7 @@ import { middleWare, apiReducer, railsActions } from 'redux-rails'
 // Set up your config
 
 const apiConfig = {
-  domain: 'https://your-site-url.com/api/',
+  baseUrl: 'https://your-site-url.com/api/',
   resources: {
     Posts: {
       controller: 'posts'
@@ -75,7 +75,7 @@ Fetch list of members from a resource collection.
 App.dispatch(railsActions.index({resource: 'Posts'}))
 ```
 
-HTTP GET on resources. Example: `GET http://my-domain/myapi/posts`
+HTTP GET on resources. Example: `GET http://my-site/myapi/posts`
 
 
 ### show
@@ -87,7 +87,7 @@ App.dispatch(railsActions.show({
   id: 3
 }))
 ```
-HTTP GET on specific member in resources. Example: `GET http://my-domain/myapi/posts/3`
+HTTP GET on specific member in resources. Example: `GET http://my-site/myapi/posts/3`
 
 ### update
 
@@ -103,7 +103,7 @@ App.dispatch(railsActions.update({
 }))
 ```
 
-HTTP PUT on specific member in resources. Example: `PUT http://my-domain/myapi/posts/3`
+HTTP PUT on specific member in resources. Example: `PUT http://my-site/myapi/posts/3`
 
 ### create
 
@@ -118,7 +118,7 @@ App.dispatch(railsActions.create({
 }))
 ```
 
-HTTP POST on resources. Example: `POST http://my-domain/myapi/posts`
+HTTP POST on resources. Example: `POST http://my-site/myapi/posts`
 
 ### destroy
 
@@ -130,7 +130,7 @@ App.dispatch(railsActions.destroy({
 }))
 ```
 
-HTTP DELETE on specific member in resources. Example: `DELETE http://my-domain/myapi/posts/3`
+HTTP DELETE on specific member in resources. Example: `DELETE http://my-site/myapi/posts/3`
 
 ### HTTP Method to Redux Actions Mappings
 
@@ -148,7 +148,7 @@ A resource can be singluar (user) or plural (users). This is determined by the n
 
 ```js
 const apiConfig = {
-  domain: 'https://your-site-url.com/api/',
+  baseUrl: 'https://your-site-url.com/api/',
   resources: {
     User: {
       controller: 'user' // singluar
@@ -180,7 +180,7 @@ With the exception of `create`, plural resources require a member id, and the id
   // GET https://your-site-url.com/api/users/123
 ```
 
-With user(s) as an example resource, and `https://your-site-url.com/api/` as your domain, your url structures would look like this for different rails actions.
+With user(s) as an example resource, and `https://your-site-url.com/api/` as your baseUrl, your url structures would look like this for different rails actions.
 
 | Resource Controller | Redux Rails action | HTTP Method  | controller URL |
 | ------------------- | ------------------ | -----------  | -------------- |
@@ -226,7 +226,7 @@ import { createStore, applyMiddleware, compose } from 'redux'
 import { middleWare, apiReducer, railsActions } from 'redux-rails'
 
   const config = {
-    domain: 'https://your-site-url.com/api/',
+    baseUrl: 'https://your-site-url.com/api/',
     resources: {
       User: {
         controller: 'user' // singular resource
@@ -464,7 +464,7 @@ The Redux Rails config has many options. You can also use several configs along 
 A complex example of a Redux Rails config:
 ```js
 const apiConfig = {
-  domain: 'https://your-site-url.com/api/',
+  baseUrl: 'https://your-site-url.com/api/',
   resources: {
     Posts: {
       controller: 'posts',
@@ -478,7 +478,7 @@ const apiConfig = {
         }
       },
       idAttribute: '_id',
-      domain: 'https://your-OTHER-site-url.com/api/'
+      baseUrl: 'https://your-OTHER-site-url.com/api/'
     },
     User: {
       controller: 'user',
@@ -505,10 +505,12 @@ const apiConfig = {
 }
 ```
 
-### domain
-This is the top level for all resources in the config. If your site's api is entirely under `https://your-site-url.com/api/`, ex. `https://your-site-url.com/api/posts`, then this should be the only domain setting you need.
+### baseUrl
+This is the top level url for all resources in the config. If your site's api is entirely under `https://your-site-url.com/api/`, ex. `https://your-site-url.com/api/posts`, then this should be the only baseUrl setting you need.
 
-If you need a different domain per resource, ex. `https://your-site-url.com/api/posts` and `https://your-OTHER-site-url.com/api/comments`, you can set a specific domain per resource that needs it. Any resource without a domain set will fallback to this top-level domain setting.
+If you need a different baseUrl per resource, ex. `https://your-site-url.com/api/posts` and `https://your-OTHER-site-url.com/api/comments`, you can set a specific baseUrl per resource that needs it. Any resource without a baseUrl setting will fallback to the top-level baseUrl setting.
+
+A baseUrl is also not required at all, if you'd rather pass your resource's url on every railsAction call. The baseUrl can also be overriden per action, if needed. Just pass it in with your `railsAction`.
 
 ### resources
 This is a mapping of your Rails resources. Resources can be plural (ex: posts) or singular (ex: post). Each resource has a list of optional attributes and one required attribute (controller)
@@ -516,7 +518,7 @@ This is a mapping of your Rails resources. Resources can be plural (ex: posts) o
 **example
 ```js
 const apiConfig = {
-  domain: 'https://your-site-url.com/api/',
+  baseUrl: 'https://your-site-url.com/api/',
   resources: {
     Posts: {
       controller: 'posts',
@@ -525,7 +527,7 @@ const apiConfig = {
     Comments: {
       controller: 'comments',
       idAttribute: '_id',
-      domain: 'https://your-OTHER-site-url.com/api/'
+      baseUrl: 'https://your-OTHER-site-url.com/api/'
     },
     User: {
       controller: 'user',
@@ -541,7 +543,7 @@ const apiConfig = {
 
 
 #### controller (required)
-The controller attribute tells Redux Rails what specific url to make HTTP actions against. For example, the resource `Posts` could be found at `https://your-site-url.com/api/posts`. This would make the domain for this resource `https://your-site-url.com/api/` and the controller `posts`. The controller does not need to match the name of the resource, though this is generally good practice for a RESTful api. If you're using Rails, the controller set here should probably match the one set in your routes file.
+The controller attribute tells Redux Rails what specific url to make HTTP actions against. For example, the resource `Posts` could be found at `https://your-site-url.com/api/posts`. This would make the baseUrl for this resource `https://your-site-url.com/api/` and the controller `posts`. The controller does not need to match the name of the resource, though this is generally good practice for a RESTful api. If you're using Rails, the controller set here should probably match the one set in your routes file.
 
 #### parse (optional)
 This can be either a single function or an object with two functions, `member` and `collection`. These functions are used to parse the response from your api, and its where you should do any data transformation before the data is added to your Redux store. `member` is used for responses related to a specific model and `collection` is used for responses to `index` calls.
@@ -549,7 +551,7 @@ This can be either a single function or an object with two functions, `member` a
 Example of a single function for all resource types:
 ```js
 const apiConfig = {
-  domain: 'https://your-site-url.com/api/',
+  baseUrl: 'https://your-site-url.com/api/',
   resources: {
     Posts: {
       controller: 'posts',
@@ -567,7 +569,7 @@ const apiConfig = {
 Example of a function for each resource type:
 ```js
 const apiConfig = {
-  domain: 'https://your-site-url.com/api/',
+  baseUrl: 'https://your-site-url.com/api/',
   resources: {
     Posts: {
       controller: 'posts',
@@ -603,8 +605,8 @@ Example with `idAttribute` set to `_@@id`:
 }
 ```
 
-#### domain (optional)
-Url domain for your resource(s). If you'd like a different domain for a specific resource, you can set `domain` on the resource level as well. If you're using multiple configs, each config can have a top-level domain.
+#### baseUrl (optional)
+Url base for your resource(s). If you'd like a different baseUrl for a specific resource, you can set `baseUrl` on the resource level as well. If you're using multiple configs, each config can have a top-level baseUrl.
 
 ### fetchParams
 These are the options sent to the `Fetch` call when making any call to your api. These map directly to the options available in the [Fetch Request object](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request).
@@ -612,7 +614,7 @@ These are the options sent to the `Fetch` call when making any call to your api.
 This is where you would set your headers or credentials, for example. This can be set per resource or top-level. Each config, if you're using mutliple configs, can also have their own settings.
 
 ### disableFetchQueueing
-Fetch queueing can be disabled per config or per resource. Resources with fetch queueing disabled will not execute actions in the order they were called, but will instead execute actions in the order they are received from the server. *This makes your app susceptible to race conditions.* For example, if a user edits a posts and then edits it again very quickly, the first edit may return from the server after the second, giving the user a false representation of the post's state on the server. 
+Fetch queueing can be disabled per config or per resource. Resources with fetch queueing disabled will not execute actions in the order they were called, but will instead execute actions in the order they are received from the server. *This makes your app susceptible to race conditions.* For example, if a user edits a posts and then edits it again very quickly, the first edit may return from the server after the second, giving the user a false representation of the post's state on the server.
 
 *It's highly recommended that fetch queueing remain enabled unless you are very aware of the consequences.*
 
@@ -621,7 +623,7 @@ If you'd like to add additional functionality to your resources, you can pass in
 
 ```js
 const apiConfig = {
-  domain: 'https://your-site-url.com/api/',
+  baseUrl: 'https://your-site-url.com/api/',
   resources: {
     Comments: {
       controller: 'comments',
@@ -649,7 +651,7 @@ Of course, you can also create a large, richly defined reducer and simply import
 import myCommentsReducer from 'my/comments/reducer'
 
 const apiConfig = {
-  domain: 'https://your-site-url.com/api/',
+  baseUrl: 'https://your-site-url.com/api/',
   resources: {
     Comments: {
       controller: 'comments',
@@ -659,7 +661,7 @@ const apiConfig = {
 }
 ```
 
-The same rules that apply to a regular Reducer apply to the reducer here ie. it must return state as a default case. 
+The same rules that apply to a regular Reducer apply to the reducer here ie. it must return state as a default case.
 
 ### Using multiple configs
 Multiple configs can be used throughout your Redux store's hierarchy. Use `combineConfigs` to do this.
@@ -670,7 +672,7 @@ import { middleWare, apiReducer, combineConfigs } from 'redux-rails'
 
 // these settings will be the fallback for all configs
 const defaultConfig = {
-  domain: 'https://your-site-url.com/api/',
+  baseUrl: 'https://your-site-url.com/api/',
   fetchParams: {
     headers: {
       'content-type':'application/json'
@@ -687,7 +689,7 @@ const postsConfig = {
 }
 
 const commentsConfig = {
-  domain: 'https://your-comments-site-url.com/api/',
+  baseUrl: 'https://your-comments-site-url.com/api/',
   resources: {
     Comments: {
       controller: 'comments'
@@ -713,4 +715,4 @@ const App = createStore(
 )
 ```
 
-The first config given to `combineConfigs` is used as the default for top-level `domain` and `fetchParams`. These can be overriden per config and per resource.
+The first config given to `combineConfigs` is used as the default for top-level `baseUrl` and `fetchParams`. These can be overriden per config and per resource.

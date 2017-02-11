@@ -48,7 +48,7 @@ describe('apiReducer', () => {
 
   it('should return correct intial state with models and custom id', () => {
     const modelsWithcustomIdConfig = {
-      domain: 'http://localhost:3000/',
+      baseUrl: 'http://localhost:3000/',
       resources: {
         Posts: {
           idAttribute: '_@@aid',

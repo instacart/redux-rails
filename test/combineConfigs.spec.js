@@ -2,7 +2,7 @@ import combineConfigs from '../src/combineConfigs'
 
 describe('combineConfigs', () => {
   const defaultConfig = {
-    domain: 'http://localhost:3000/',
+    baseUrl: 'http://localhost:3000/',
     fetchParams: {
       headers: {
         'content-type':'application/json'
@@ -18,18 +18,18 @@ describe('combineConfigs', () => {
     }
   }
 
-  const postsConfigWithOwnDomain = {
+  const postsConfigWithOwnBaseUrl = {
     resources: {
       Posts: {
-        domain: 'http://posts-own-domain/',
+        baseUrl: 'http://posts-own-url/',
         controller: 'posts'
       }
     }
   }
 
-  const configsWithMidLevelDomain = {
+  const configsWithMidLevelBaseUrl = {
     resources: {
-      domain: 'http://mid-level-domain/',
+      baseUrl: 'http://mid-level-url/',
       Posts: {
         controller: 'posts'
       },
@@ -39,12 +39,12 @@ describe('combineConfigs', () => {
     }
   }
 
-  const configsWithMultiLevelDomains = {
+  const configsWithMultiLevelBaseUrls = {
     resources: {
-      domain: 'http://mid-level-domain/',
+      baseUrl: 'http://mid-level-url/',
       Cats: {
         controller: 'cats',
-        domain: 'http://low-level-domain/',
+        baseUrl: 'http://low-level-url/',
       },
       Comments: {
         controller: 'comments'
@@ -54,11 +54,11 @@ describe('combineConfigs', () => {
 
   it('should fall back on default config values', () => {
     const finalConfig = {
-      domain: 'http://localhost:3000/',
+      baseUrl: 'http://localhost:3000/',
       resources: {
         Posts: {
           controller: 'posts',
-          domain: 'http://localhost:3000/'
+          baseUrl: 'http://localhost:3000/'
         }
       },
       fetchParams: {
@@ -80,13 +80,13 @@ describe('combineConfigs', () => {
     expect(combineConfigs({}, postsConfig)).toEqual(finalConfig2)
   })
 
-  it('should use the domain specified closest to the resource\'s own config', () => {
+  it('should use the baseUrl specified closest to the resource\'s own config', () => {
     const finalConfig = {
-      domain: 'http://localhost:3000/',
+      baseUrl: 'http://localhost:3000/',
       resources: {
         Posts: {
           controller: 'posts',
-          domain: 'http://posts-own-domain/'
+          baseUrl: 'http://posts-own-url/'
         }
       },
       fetchParams: {
@@ -97,15 +97,15 @@ describe('combineConfigs', () => {
     }
 
     const finalConfig2 = {
-      domain: 'http://localhost:3000/',
+      baseUrl: 'http://localhost:3000/',
       resources: {
         Posts: {
           controller: 'posts',
-          domain: 'http://mid-level-domain/'
+          baseUrl: 'http://mid-level-url/'
         },
         Comments: {
           controller: 'comments',
-          domain: 'http://mid-level-domain/'
+          baseUrl: 'http://mid-level-url/'
         }
       },
       fetchParams: {
@@ -116,18 +116,18 @@ describe('combineConfigs', () => {
     }
 
     const finalConfig3 = {
-      domain: 'http://localhost:3000/',
+      baseUrl: 'http://localhost:3000/',
       resources: {
         Cats: {
           controller: 'cats',
-          domain: 'http://low-level-domain/',
+          baseUrl: 'http://low-level-url/',
         },
         Comments: {
-          domain: 'http://mid-level-domain/',
+          baseUrl: 'http://mid-level-url/',
           controller: 'comments'
         },
         Posts: {
-          domain: 'http://localhost:3000/',
+          baseUrl: 'http://localhost:3000/',
           controller: 'posts'
         }
       },
@@ -138,15 +138,15 @@ describe('combineConfigs', () => {
       }
     }
 
-    expect(combineConfigs(defaultConfig, postsConfigWithOwnDomain)).toEqual(finalConfig)
-    expect(combineConfigs(defaultConfig, configsWithMidLevelDomain)).toEqual(finalConfig2)
-    expect(combineConfigs(defaultConfig, configsWithMultiLevelDomains, postsConfig)).toEqual(finalConfig3)
+    expect(combineConfigs(defaultConfig, postsConfigWithOwnBaseUrl)).toEqual(finalConfig)
+    expect(combineConfigs(defaultConfig, configsWithMidLevelBaseUrl)).toEqual(finalConfig2)
+    expect(combineConfigs(defaultConfig, configsWithMultiLevelBaseUrls, postsConfig)).toEqual(finalConfig3)
   })
 
   it('should not mutate the original config objects', () => {
 
     const config1 = {
-      domain: 'http://localhost:3000/',
+      baseUrl: 'http://localhost:3000/',
       fetchParams: {
         headers: {
           'content-type':'application/json'
@@ -155,7 +155,7 @@ describe('combineConfigs', () => {
     }
 
     const config1Clean = {
-      domain: 'http://localhost:3000/',
+      baseUrl: 'http://localhost:3000/',
       fetchParams: {
         headers: {
           'content-type':'application/json'
@@ -182,7 +182,7 @@ describe('combineConfigs', () => {
     const config3 = {
       resources: {
         Posts: {
-          domain: 'http://posts-own-domain/',
+          baseUrl: 'http://posts-own-url/',
           controller: 'posts'
         }
       }
@@ -191,7 +191,7 @@ describe('combineConfigs', () => {
     const config3Clean = {
       resources: {
         Posts: {
-          domain: 'http://posts-own-domain/',
+          baseUrl: 'http://posts-own-url/',
           controller: 'posts'
         }
       }
@@ -199,7 +199,7 @@ describe('combineConfigs', () => {
 
     const config4 = {
       resources: {
-        domain: 'http://mid-level-domain/',
+        baseUrl: 'http://mid-level-url/',
         Posts: {
           controller: 'posts'
         },
@@ -211,7 +211,7 @@ describe('combineConfigs', () => {
 
     const config4Clean = {
       resources: {
-        domain: 'http://mid-level-domain/',
+        baseUrl: 'http://mid-level-url/',
         Posts: {
           controller: 'posts'
         },

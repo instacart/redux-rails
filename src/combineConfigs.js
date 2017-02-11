@@ -11,13 +11,13 @@ export default (...configs) => {
       Object.keys(config.resources || {}).forEach((resourceName) => {
         const resource = config.resources[resourceName]
 
-        // mid-level domain setting
-        if (resourceName === 'domain' && typeof resource === 'string') { return }
+        // mid-level  setting
+        if (resourceName === 'baseUrl' && typeof resource === 'string') { return }
 
-        // apply domain to all resources in config without a domain specified
+        // apply baseUrl to all resources in config without a baseUrl specified
         // this is particularly useful for multi-config setups
         newResources[resourceName] = Object.assign({}, resource, {
-          domain: resource.domain || config.resources.domain || defaultConfig.domain
+          baseUrl: resource.baseUrl || config.resources.baseUrl || defaultConfig.baseUrl
         })
       })
 

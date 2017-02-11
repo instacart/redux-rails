@@ -53,7 +53,7 @@ describe('LOADING action', () => {
 
   it('shoud set the loading state of the member in the collection by id with custom idAttribute', () => {
     const modelsWithcustomIdConfig = {
-      domain: 'http://localhost:3000/',
+      baseUrl: 'http://localhost:3000/',
       resources: {
         Posts: {
           idAttribute: '_@@aid',
