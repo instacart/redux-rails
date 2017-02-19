@@ -43,6 +43,31 @@ const constructfetchOptions = ({railsAction, resource, config, data, fetchParams
   return options
 }
 
+const dequeFetch = ({resource}) => {
+  const resourceQueue = getResourceQueue({resource})
+
+  // take this fetch off the queue
+  resourceQueue.shift()
+
+  if (resourceQueue.length > 0) {
+    fetchResource(resourceQueue[0])
+  }
+}
+
+const dispatchFetchError = ({store, resource, railsAction, error, id, cId}) => {
+  const type = `${resource}.${railsAction}_ERROR`
+  store.dispatch({ type, error, id, cId })
+}
+
+const dispatchFetchSuccess = ({store, resource, railsAction, id, cId, json, config, controller}) => {
+  const type = `${resource}.${railsAction}_SUCCESS`
+  store.dispatch({type, cId, id,
+    response: parseResult({json, resource, config,
+      resourceType: determineResourceType({controller})
+    })
+  })
+}
+
 const enqueueFetch = (resource, fetchData) => {
   // adds fetch request to queue by resource
   // and intializes the queue if needed
@@ -62,6 +87,8 @@ const fetchResource = ({store, resource, config, data={}, railsAction, controlle
   const controller = controllerOverride || resourceConfig.controller
   const idAttribute = getResourceIdAttribute({config, resource})
   const fetchParams = fetchParamsOverride || resourceConfig.fetchParams || config.fetchParams
+  const url = constructUrl({baseUrl, controller, railsAction, data})
+  const options = constructfetchOptions({railsAction, resource, data, config, fetchParams})
   let cId
 
   if (railsAction === 'CREATE') {
@@ -70,56 +97,29 @@ const fetchResource = ({store, resource, config, data={}, railsAction, controlle
     store.dispatch({ type: `${resource}.SET_LOADING`, cId})
   }
 
-  fetch(
-    constructUrl({baseUrl, controller, railsAction, data}),
-    constructfetchOptions({railsAction, resource, data, config, fetchParams})
-  )
+  fetch(url, options)
     .then((response) => {
       response.json()
         .then((json) => {
           const id = (json && json[idAttribute]) || data.id
 
           if(!response.ok) {
-            return store.dispatch({
-              type: `${resource}.${railsAction}_ERROR`,
-              error: json.error || { message: response.statusText },
-              id,
-              cId
+            return dispatchFetchError({store, resource, railsAction, id, cId,
+              error: json.error || { message: response.statusText }
             })
           }
 
-          store.dispatch({
-            type: `${resource}.${railsAction}_SUCCESS`,
-            cId,
-            id,
-            response: parseResult({
-              json,
-              resource,
-              config,
-              resourceType: determineResourceType({controller})
-            })
-          })
+          dispatchFetchSuccess({store, resource, railsAction, id, cId, json, config, controller})
         })
         .catch((error) => {
-          const type = `${resource}.${railsAction}_ERROR`
           const outError = error && error.toString && error.toString()
-          store.dispatch({ type, error: outError, id: data.id, cId })
+          dispatchFetchError({store, resource, railsAction, error: outError, id: data.id, cId})
         })
     })
     .catch((error) => {
-      const type = `${resource}.${railsAction}_ERROR`
-      store.dispatch({ type, error, id: data.id, cId })
+      dispatchFetchError({store, resource, railsAction, error, id: data.id, cId})
     })
-    .then(() => {
-      const resourceQueue = getResourceQueue({resource})
-
-      // take this fetch off the queue
-      resourceQueue.shift()
-
-      if (resourceQueue.length > 0) {
-        fetchResource(resourceQueue[0])
-      }
-    })
+    .then(() => dequeFetch({resource}))
 }
 
 const getResourceQueue = ({resource}) => {

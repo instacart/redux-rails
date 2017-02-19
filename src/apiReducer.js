@@ -337,6 +337,8 @@ export default (config) => {
             })
           }
 
+          debugger
+
           return Object.assign({}, state, {
             models: setMemberLoading({id, state})
           })
