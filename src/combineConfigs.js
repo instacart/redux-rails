@@ -1,3 +1,13 @@
+import { isBool } from './utilities'
+
+const determinOptimisticUpdateSetting = ({resource, config, defaultConfig}) => {
+  if (isBool(resource.optimisticUpdateEnabled)) { return resource.optimisticUpdateEnabled }
+  if (isBool(config.resources.optimisticUpdateEnabled)) { return config.resources.optimisticUpdateEnabled }
+  if (isBool(defaultConfig.optimisticUpdateEnabled)) { return defaultConfig.optimisticUpdateEnabled }
+
+  return true
+}
+
 export default (...configs) => {
   const defaultConfig = configs[0] || {} // the first config is used as the default settings
   let finalConfig = Object.assign({}, defaultConfig, {
@@ -11,13 +21,15 @@ export default (...configs) => {
       Object.keys(config.resources || {}).forEach((resourceName) => {
         const resource = config.resources[resourceName]
 
-        // mid-level  setting
+        // mid-level  settings
         if (resourceName === 'baseUrl' && typeof resource === 'string') { return }
+        if (resourceName === 'optimisticUpdateEnabled' && isBool(resource)) { return }
 
-        // apply baseUrl to all resources in config without a baseUrl specified
+        // apply some settings to all resources in config without being specified
         // this is particularly useful for multi-config setups
         newResources[resourceName] = Object.assign({}, resource, {
-          baseUrl: resource.baseUrl || config.resources.baseUrl || defaultConfig.baseUrl
+          baseUrl: resource.baseUrl || config.resources.baseUrl || defaultConfig.baseUrl,
+          optimisticUpdateEnabled: determinOptimisticUpdateSetting({resource, config, defaultConfig})
         })
       })
 

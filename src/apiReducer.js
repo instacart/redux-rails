@@ -7,7 +7,8 @@ import {
 
 const apiDefaultState = {
   loading: false,
-  loadingError: undefined
+  loadingError: undefined,
+  __prevData: undefined
 }
 
 // reducer utilities
@@ -70,8 +71,11 @@ const collectionWithUpdatedModel = ({id, cId, state, updatedModel}) => {
   })
 }
 
-const replaceMemberAttributes = ({id, data, metaData, state, cId}) => {
+const setMemberAttributes = ({id, data, metaData, state, cId, replaceAttributes=true, replaceMeta=true}) => {
   const currentModel = findModel({id, cId, state})
+  let newAttributes
+  let currentMeta = {}
+  let newMeta = metaData
 
   if (!currentModel) {
     // model does not yet exist in models array -- create it.
@@ -80,29 +84,15 @@ const replaceMemberAttributes = ({id, data, metaData, state, cId}) => {
     })
   }
 
+  newAttributes = replaceAttributes ? data : Object.assign({}, currentModel.attributes, data)
+
+  // keep cId of model around, if it has one
+  if (!cId && currentModel.cId) { cId = currentModel.cId }
+
   // model already exists in model array -- replace its attributes.
   return collectionWithUpdatedModel({id, cId, state,
-    updatedModel: createNewModel({id, cId, metaData, attributes: data})
+    updatedModel: createNewModel({id, cId, metaData, attributes: newAttributes})
   })
-}
-
-const updateMemberAttributes = ({id, data, state}) => {
-  const currentModel = findModel({id, state})
-
-  if (!currentModel) {
-    // model does not yet exist in models array -- create it.
-    return collectionWithNewModel({state,
-      model: createNewModel({id, attributes: data})
-    })
-  }
-
-  // model already exists in model array -- update its attributes.
-  return collectionWithUpdatedModel({id, state,
-    updatedModel: createNewModel({id,
-      attributes: Object.assign({}, currentModel.attributes, data)
-    }
-  )})
-
 }
 
 const destroyMember = ({id, state}) => {
@@ -149,7 +139,7 @@ const setMemberLoadingError = ({id, cId, state, error}) => {
   // single model within a collection -- find it and set its loading state.
   return collectionWithUpdatedModel({id, state, cId,
     updatedModel: createNewModel({...currentModel,
-      metaData: { loadingError: error }
+      metaData: { loadingError: error, __prevData: currentModel.__prevData }
     }
   )})
 }
@@ -269,7 +259,7 @@ export default (config) => {
           }
 
           return Object.assign({}, state, createNewCollection({
-            models: replaceMemberAttributes({id, data, state,
+            models: setMemberAttributes({id, data, state,
               metaData: { loading: false }
             })
           }))
@@ -296,7 +286,7 @@ export default (config) => {
           }
 
           return createNewCollection({
-            models: replaceMemberAttributes({cId, state})
+            models: setMemberAttributes({cId, state})
           })
         }
         case `${resource}.CREATE_SUCCESS`: {
@@ -310,7 +300,7 @@ export default (config) => {
           }
 
           return createNewCollection({
-            models: replaceMemberAttributes({data, state, id, cId})
+            models: setMemberAttributes({data, state, id, cId})
           })
         }
         case `${resource}.CREATE_ERROR`: {
@@ -329,15 +319,14 @@ export default (config) => {
         case `${resource}.UPDATE`: {
           const data = action.data || {}
           const { id } = data
+          const __prevData = state.__prevData
 
           if (isSingleModel) {
             return createNewModel({id,
-              metaData: { loading: true },
+              metaData: { loading: true, __prevData},
               attributes: state.attributes
             })
           }
-
-          debugger
 
           return Object.assign({}, state, {
             models: setMemberLoading({id, state})
@@ -354,7 +343,7 @@ export default (config) => {
           }
 
           return Object.assign({}, state, {
-            models: updateMemberAttributes({id, data, state})
+            models: setMemberAttributes({id, data, state, replaceAttributes: false})
           })
         }
         case `${resource}.UPDATE_ERROR`: {
@@ -427,6 +416,44 @@ export default (config) => {
             models: setMemberLoading({idAttribute, id, cId, state})
           })
 
+        }
+        case `${resource}.SET_OPTIMISTIC_DATA`: {
+          const { id, cId, data } = action
+          const currentModel = isSingleModel ? state : findModel({id, cId, state})
+          const __prevData = Object.assign({}, currentModel.attributes)
+          let currentMeta = {}
+          let newMeta
+
+          Object.keys(apiDefaultState).forEach((metaKey) => {
+            currentMeta[metaKey] = currentModel[metaKey]
+          })
+
+          newMeta = Object.assign({}, currentMeta, { __prevData })
+
+          if (isSingleModel) {
+            return createNewModel({id, cId,
+              attributes: Object.assign({}, currentModel.attributes, data),
+              metaData: newMeta
+            })
+          }
+
+          return createNewCollection({
+            models: setMemberAttributes({data, state, id, cId, metaData: newMeta})
+          })
+        }
+        case `${resource}.UNSET_OPTIMISTIC_DATA`: {
+          const { id, cId } = action
+          const currentModel = isSingleModel ? state : findModel({id, cId, state})
+
+          if (isSingleModel) {
+            return createNewModel({id, cId,
+              attributes: currentModel.__prevData
+            })
+          }
+
+          return createNewCollection({
+            models: setMemberAttributes({data: currentModel.__prevData, state, id, cId})
+          })
         }
         default: {
           const resourceConfig = config.resources[resource]

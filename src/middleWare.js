@@ -1,7 +1,8 @@
 import {
   determineResourceType,
   getResourceIdAttribute,
-  getUniqueClientId
+  getUniqueClientId,
+  isBool
  } from './utilities'
 
  let fetchQueue = {}
@@ -28,7 +29,7 @@ const constructUrl = ({baseUrl, controller, railsAction, data}) => {
   return `${baseUrl}${controller}${urlTail()}`
 }
 
-const constructfetchOptions = ({railsAction, resource, config, data, fetchParams}) => {
+const constructfetchOptions = ({railsAction, resource, config, data, fetchParams={}}) => {
   // options available match request the fetch Request object:
   // https://developer.mozilla.org/en-US/docs/Web/API/Request/Request
   const method = actionMethodMap[railsAction]
@@ -43,7 +44,7 @@ const constructfetchOptions = ({railsAction, resource, config, data, fetchParams
   return options
 }
 
-const dequeFetch = ({resource}) => {
+const dequeueFetch = ({resource}) => {
   const resourceQueue = getResourceQueue({resource})
 
   // take this fetch off the queue
@@ -54,9 +55,13 @@ const dequeFetch = ({resource}) => {
   }
 }
 
-const dispatchFetchError = ({store, resource, railsAction, error, id, cId}) => {
+const dispatchFetchError = ({store, resource, railsAction, error, id, cId, optimisticUpdateEnabled}) => {
   const type = `${resource}.${railsAction}_ERROR`
   store.dispatch({ type, error, id, cId })
+
+  if (['CREATE', 'UPDATE'].includes(railsAction) && optimisticUpdateEnabled) {
+    store.dispatch({ type: `${resource}.UNSET_OPTIMISTIC_DATA`, id, cId })
+  }
 }
 
 const dispatchFetchSuccess = ({store, resource, railsAction, id, cId, json, config, controller}) => {
@@ -89,12 +94,18 @@ const fetchResource = ({store, resource, config, data={}, railsAction, controlle
   const fetchParams = fetchParamsOverride || resourceConfig.fetchParams || config.fetchParams
   const url = constructUrl({baseUrl, controller, railsAction, data})
   const options = constructfetchOptions({railsAction, resource, data, config, fetchParams})
+  const optimisticUpdateEnabled = isBool(resourceConfig.optimisticUpdateEnabled) ? resourceConfig.optimisticUpdateEnabled : true
   let cId
 
+  // NOTE: assigning a cId for new models must happen before optimistic updates
   if (railsAction === 'CREATE') {
     cId = getUniqueClientId()
     store.dispatch({ type: `${resource}.ASSIGN_CID`, cId })
     store.dispatch({ type: `${resource}.SET_LOADING`, cId})
+  }
+
+  if (['CREATE', 'UPDATE'].includes(railsAction) && optimisticUpdateEnabled) {
+    store.dispatch({ type: `${resource}.SET_OPTIMISTIC_DATA`, id: data.id, cId, data})
   }
 
   fetch(url, options)
@@ -104,22 +115,22 @@ const fetchResource = ({store, resource, config, data={}, railsAction, controlle
           const id = (json && json[idAttribute]) || data.id
 
           if(!response.ok) {
-            return dispatchFetchError({store, resource, railsAction, id, cId,
+            return dispatchFetchError({store, resource, railsAction, id, cId, optimisticUpdateEnabled,
               error: json.error || { message: response.statusText }
             })
           }
 
-          dispatchFetchSuccess({store, resource, railsAction, id, cId, json, config, controller})
+          dispatchFetchSuccess({store, resource, railsAction, id, cId, json, config, controller, optimisticUpdateEnabled})
         })
         .catch((error) => {
           const outError = error && error.toString && error.toString()
-          dispatchFetchError({store, resource, railsAction, error: outError, id: data.id, cId})
+          dispatchFetchError({store, resource, railsAction, error: outError, id: data.id, cId, optimisticUpdateEnabled})
         })
     })
     .catch((error) => {
-      dispatchFetchError({store, resource, railsAction, error, id: data.id, cId})
+      dispatchFetchError({store, resource, railsAction, error, id: data.id, cId, optimisticUpdateEnabled})
     })
-    .then(() => dequeFetch({resource}))
+    .then(() => dequeueFetch({resource}))
 }
 
 const getResourceQueue = ({resource}) => {

@@ -52,13 +52,52 @@ describe('combineConfigs', () => {
     }
   }
 
+  const postsConfigWithOwnOptimisticUpdateEnabledSetting = {
+    resources: {
+      Posts: {
+        baseUrl: 'http://posts-own-url/',
+        optimisticUpdateEnabled: false,
+        controller: 'posts'
+      }
+    }
+  }
+
+  const configsWithMidLevelOptimisticUpdateEnabledSetting = {
+    resources: {
+      baseUrl: 'http://mid-level-url/',
+      optimisticUpdateEnabled: false,
+      Posts: {
+        controller: 'posts'
+      },
+      Comments: {
+        controller: 'comments'
+      }
+    }
+  }
+
+  const configsWithMultiLevelOptimisticUpdateEnabledSettings = {
+    resources: {
+      baseUrl: 'http://mid-level-url/',
+      optimisticUpdateEnabled: false,
+      Cats: {
+        controller: 'cats',
+        baseUrl: 'http://low-level-url/',
+        optimisticUpdateEnabled: true,
+      },
+      Comments: {
+        controller: 'comments'
+      }
+    }
+  }
+
   it('should fall back on default config values', () => {
     const finalConfig = {
       baseUrl: 'http://localhost:3000/',
       resources: {
         Posts: {
           controller: 'posts',
-          baseUrl: 'http://localhost:3000/'
+          baseUrl: 'http://localhost:3000/',
+          optimisticUpdateEnabled: true
         }
       },
       fetchParams: {
@@ -71,7 +110,8 @@ describe('combineConfigs', () => {
     const finalConfig2 = {
       resources: {
         Posts: {
-          controller: 'posts'
+          controller: 'posts',
+          optimisticUpdateEnabled: true
         }
       }
     }
@@ -86,7 +126,8 @@ describe('combineConfigs', () => {
       resources: {
         Posts: {
           controller: 'posts',
-          baseUrl: 'http://posts-own-url/'
+          baseUrl: 'http://posts-own-url/',
+          optimisticUpdateEnabled: true,
         }
       },
       fetchParams: {
@@ -101,11 +142,13 @@ describe('combineConfigs', () => {
       resources: {
         Posts: {
           controller: 'posts',
-          baseUrl: 'http://mid-level-url/'
+          baseUrl: 'http://mid-level-url/',
+          optimisticUpdateEnabled: true
         },
         Comments: {
           controller: 'comments',
-          baseUrl: 'http://mid-level-url/'
+          baseUrl: 'http://mid-level-url/',
+          optimisticUpdateEnabled: true
         }
       },
       fetchParams: {
@@ -121,14 +164,17 @@ describe('combineConfigs', () => {
         Cats: {
           controller: 'cats',
           baseUrl: 'http://low-level-url/',
+          optimisticUpdateEnabled: true
         },
         Comments: {
           baseUrl: 'http://mid-level-url/',
-          controller: 'comments'
+          controller: 'comments',
+          optimisticUpdateEnabled: true
         },
         Posts: {
           baseUrl: 'http://localhost:3000/',
-          controller: 'posts'
+          controller: 'posts',
+          optimisticUpdateEnabled: true
         }
       },
       fetchParams: {
@@ -141,6 +187,75 @@ describe('combineConfigs', () => {
     expect(combineConfigs(defaultConfig, postsConfigWithOwnBaseUrl)).toEqual(finalConfig)
     expect(combineConfigs(defaultConfig, configsWithMidLevelBaseUrl)).toEqual(finalConfig2)
     expect(combineConfigs(defaultConfig, configsWithMultiLevelBaseUrls, postsConfig)).toEqual(finalConfig3)
+  })
+
+  it('should use the optimisticUpdateEnabled setting specified closest to the resource\'s own config', () => {
+    const finalConfig = {
+      baseUrl: 'http://localhost:3000/',
+      resources: {
+        Posts: {
+          controller: 'posts',
+          baseUrl: 'http://posts-own-url/',
+          optimisticUpdateEnabled: false,
+        }
+      },
+      fetchParams: {
+        headers: {
+          'content-type':'application/json'
+        }
+      }
+    }
+
+    const finalConfig2 = {
+      baseUrl: 'http://localhost:3000/',
+      resources: {
+        Posts: {
+          controller: 'posts',
+          baseUrl: 'http://mid-level-url/',
+          optimisticUpdateEnabled: false
+        },
+        Comments: {
+          controller: 'comments',
+          baseUrl: 'http://mid-level-url/',
+          optimisticUpdateEnabled: false
+        }
+      },
+      fetchParams: {
+        headers: {
+          'content-type':'application/json'
+        }
+      }
+    }
+
+    const finalConfig3 = {
+      baseUrl: 'http://localhost:3000/',
+      resources: {
+        Cats: {
+          controller: 'cats',
+          baseUrl: 'http://low-level-url/',
+          optimisticUpdateEnabled: true
+        },
+        Comments: {
+          baseUrl: 'http://mid-level-url/',
+          controller: 'comments',
+          optimisticUpdateEnabled: false
+        },
+        Posts: {
+          baseUrl: 'http://localhost:3000/',
+          controller: 'posts',
+          optimisticUpdateEnabled: true
+        }
+      },
+      fetchParams: {
+        headers: {
+          'content-type':'application/json'
+        }
+      }
+    }
+
+    expect(combineConfigs(defaultConfig, postsConfigWithOwnOptimisticUpdateEnabledSetting)).toEqual(finalConfig)
+    expect(combineConfigs(defaultConfig, configsWithMidLevelOptimisticUpdateEnabledSetting)).toEqual(finalConfig2)
+    expect(combineConfigs(defaultConfig, configsWithMultiLevelOptimisticUpdateEnabledSettings, postsConfig)).toEqual(finalConfig3)
   })
 
   it('should not mutate the original config objects', () => {
