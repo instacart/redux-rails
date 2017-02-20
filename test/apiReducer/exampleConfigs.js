@@ -106,3 +106,31 @@ export const configWithCustomReducer = {
     }
   }
 }
+
+export const configWithOptimisticUpdateDisableOnOneResource = {
+  baseUrl: 'http://localhost:3000/',
+  resources: {
+    Posts: {
+      controller: 'posts',
+      parse: (resp) => { return { data: resp } }
+    },
+    Comments: {
+      controller: 'comments',
+      optimisticUpdateEnabled: false
+    }
+  }
+}
+
+export const configWithOptimisticUpdateDisableOnSingularResource = {
+  baseUrl: 'http://localhost:3000/',
+  resources: {
+    Posts: {
+      controller: 'posts',
+      parse: (resp) => { return { data: resp } }
+    },
+    User: {
+      controller: 'user',
+      optimisticUpdateEnabled: false
+    }
+  }
+}

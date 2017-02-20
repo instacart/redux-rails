@@ -26,3 +26,5 @@ export function getResourceIdAttribute({config, resource}) {
 export function getUniqueClientId() {
   return ++uniqueClientId
 }
+
+export function isBool(val) { return typeof val === 'boolean' }

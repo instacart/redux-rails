@@ -1,7 +1,13 @@
 import { createStore, compose ,applyMiddleware } from 'redux'
 import apiReducer from '../src/apiReducer'
 import middleWare from '../src/middleWare'
-import { standardConfig, configWithParse, configWithBadCollectionParse } from './apiReducer/exampleConfigs'
+import {
+  standardConfig,
+  configWithParse,
+  configWithBadCollectionParse,
+  configWithOptimisticUpdateDisableOnOneResource,
+  configWithOptimisticUpdateDisableOnSingularResource
+} from './apiReducer/exampleConfigs'
 import nock from 'nock'
 require('es6-promise').polyfill();
 require('isomorphic-fetch');
@@ -82,6 +88,11 @@ nock('http://localhost:3000')
   .post('/posts')
   .reply(200, {id: 101, title: 'So many dalmations'});
 
+nock('http://localhost:3000')
+  .persist()
+  .post('/comments')
+  .reply(200, {id: 153, text: 'yo, dawg'});
+
 // Update
 nock('http://localhost:3000')
   .persist()
@@ -89,6 +100,15 @@ nock('http://localhost:3000')
   .reply(200, {
     id: 125,
     title: 'Now even closer to 2nd place'
+  });
+
+nock('http://localhost:3000')
+  .persist()
+  .put('/user')
+  .reply(200, {
+    first_name: 'Maya',
+    last_name: 'Angelou',
+    title: 'Poet'
   });
 
 // Destroy
@@ -229,7 +249,7 @@ describe('middleWare', () => {
           {id: 124, loading: false, loadingError: undefined, attributes: {id: 124, title: 'How to test again'}},
           {id: 125, loading: false, loadingError: undefined, attributes: {id: 125, title: 'How to test and again'}},
           {id: 3, loading: false, loadingError: undefined, attributes: {id: 3, title: 'Post #3 is #1 the best!'}},
-          {cId: 1, loading: true, loadingError: undefined, attributes: {}}
+          {cId: 1, loading: true, loadingError: undefined, attributes: { title: 'So many dalmations' }, __prevData: {}}
         ]
       },
       User: {
@@ -280,7 +300,7 @@ describe('middleWare', () => {
         models: [
           {id: 123, loading: false, loadingError: undefined, attributes: {id: 123, title: 'How to test'}},
           {id: 124, loading: false, loadingError: undefined, attributes: {id: 124, title: 'How to test again'}},
-          {id: 125, loading: true, loadingError: undefined, attributes: {id: 125, title: 'How to test and again'}},
+          {id: 125, loading: true, loadingError: undefined, attributes: {id: 125, title: 'Now even closer to 2nd place'}},
           {id: 3, loading: false, loadingError: undefined, attributes: {id: 3, title: 'Post #3 is #1 the best!'}},
           {id: 101, cId: 1, loading: false, loadingError: undefined, attributes: {id: 101, title: 'So many dalmations'}}
         ]
@@ -642,7 +662,6 @@ describe('middleWare', () => {
 
   it('call should update app state with correctly using parse methods for collection', () => {
     const reduxRailsMiddlewareParses = middleWare(configWithParse)
-    const parsesReducer = apiReducer(configWithParse)
 
     const siteAppParses = createStore(
       apiReducer(configWithParse),
@@ -699,5 +718,129 @@ describe('middleWare', () => {
       })
   })
 
+  it('should set not set __prevData with optimistic updates disabled for resource', () => {
+    const reduxRailsMiddlewareNotOptimistic = middleWare(configWithOptimisticUpdateDisableOnOneResource)
 
+    const siteAppNotOptimistic = createStore(
+      apiReducer(configWithOptimisticUpdateDisableOnOneResource),
+      {},
+      compose(applyMiddleware(reduxRailsMiddlewareNotOptimistic))
+    )
+
+    const waitForAppStateUpdateNotOptimistic = () => {
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          resolve(siteAppNotOptimistic.getState())
+        }, 10)
+      })
+    }
+
+    const action = {
+      type: 'Comments.CREATE',
+      data: {
+        text: 'This is going to work'
+      }
+    }
+
+    siteAppNotOptimistic.dispatch(action)
+
+    expect(siteAppNotOptimistic.getState()).toEqual({
+      Posts: {
+        loading: false,
+        loadingError: undefined,
+        models: []
+      },
+      Comments: {
+        loading: false,
+        loadingError: undefined,
+        models: [{
+          cId: 2,
+          loading: true,
+          loadingError: undefined,
+          attributes: {},
+          __prevData: undefined
+        }]
+      }
+    })
+
+    return waitForAppStateUpdateNotOptimistic()
+      .then((appState) => {
+        expect(appState).toEqual({
+          Posts: {
+            loading: false,
+            loadingError: undefined,
+            models: []
+          },
+          Comments: {
+            loading: false,
+            loadingError: undefined,
+            models: [
+              {id: 153, cId: 2, loading: false, loadingError: undefined, attributes: { id: 153, text: 'yo, dawg' }}
+            ]
+          }
+        })
+      })
+  })
+
+  it('should set not set __prevData with optimistic updates disabled for singular resource', () => {
+    const reduxRailsMiddlewareNotOptimisticSingluar = middleWare(configWithOptimisticUpdateDisableOnSingularResource)
+
+    const siteAppNotOptimisticSingular = createStore(
+      apiReducer(configWithOptimisticUpdateDisableOnSingularResource),
+      {},
+      compose(applyMiddleware(reduxRailsMiddlewareNotOptimisticSingluar))
+    )
+
+    const waitForAppStateUpdateNotOptimisticSingular = () => {
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          resolve(siteAppNotOptimisticSingular.getState())
+        }, 10)
+      })
+    }
+
+    const action = {
+      type: 'User.UPDATE',
+      data: {
+        first_name: 'Maya',
+        last_name: 'Angelou',
+        title: 'Poet'
+      }
+    }
+
+    siteAppNotOptimisticSingular.dispatch(action)
+
+    expect(siteAppNotOptimisticSingular.getState()).toEqual({
+      Posts: {
+        loading: false,
+        loadingError: undefined,
+        models: []
+      },
+      User: {
+        loading: true,
+        loadingError: undefined,
+        attributes: {}
+      }
+    })
+
+    return waitForAppStateUpdateNotOptimisticSingular()
+      .then((appState) => {
+        expect(appState).toEqual({
+          Posts: {
+            loading: false,
+            loadingError: undefined,
+            models: []
+          },
+          User: {
+            loading: false,
+            loadingError: undefined,
+            attributes: {
+              first_name: 'Maya',
+              last_name: 'Angelou',
+              title: 'Poet'
+            }
+          }
+        })
+      })
+  })
 })
