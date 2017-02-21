@@ -134,3 +134,17 @@ export const configWithOptimisticUpdateDisableOnSingularResource = {
     }
   }
 }
+
+export const configWithOptimisticUpdateDisableOnTopLevel = {
+  baseUrl: 'http://localhost:3000/',
+  optimisticUpdateEnabled: false,
+  resources: {
+    Posts: {
+      controller: 'posts',
+      parse: (resp) => { return { data: resp } }
+    },
+    User: {
+      controller: 'user'
+    }
+  }
+}

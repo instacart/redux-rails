@@ -6,7 +6,8 @@ import {
   configWithParse,
   configWithBadCollectionParse,
   configWithOptimisticUpdateDisableOnOneResource,
-  configWithOptimisticUpdateDisableOnSingularResource
+  configWithOptimisticUpdateDisableOnSingularResource,
+  configWithOptimisticUpdateDisableOnTopLevel
 } from './apiReducer/exampleConfigs'
 import nock from 'nock'
 require('es6-promise').polyfill();
@@ -842,5 +843,126 @@ describe('middleWare', () => {
           }
         })
       })
+  })
+
+  it('should set not set __prevData with optimistic updates disabled for on top level of config', () => {
+    const reduxRailsMiddlewareNotOptimisticTop = middleWare(configWithOptimisticUpdateDisableOnTopLevel)
+
+    const siteAppNotOptimisticTop = createStore(
+      apiReducer(configWithOptimisticUpdateDisableOnTopLevel),
+      {},
+      compose(applyMiddleware(reduxRailsMiddlewareNotOptimisticTop))
+    )
+
+    const waitForAppStateUpdateNotOptimisticTop = () => {
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          resolve(siteAppNotOptimisticTop.getState())
+        }, 10)
+      })
+    }
+
+    const action = {
+      type: 'User.UPDATE',
+      data: {
+        first_name: 'Maya',
+        last_name: 'Angelou',
+        title: 'Poet'
+      }
+    }
+
+    siteAppNotOptimisticTop.dispatch(action)
+
+    expect(siteAppNotOptimisticTop.getState()).toEqual({
+      Posts: {
+        loading: false,
+        loadingError: undefined,
+        models: []
+      },
+      User: {
+        loading: true,
+        loadingError: undefined,
+        attributes: {}
+      }
+    })
+
+    return waitForAppStateUpdateNotOptimisticTop()
+      .then((appState) => {
+        expect(appState).toEqual({
+          Posts: {
+            loading: false,
+            loadingError: undefined,
+            models: []
+          },
+          User: {
+            loading: false,
+            loadingError: undefined,
+            attributes: {
+              first_name: 'Maya',
+              last_name: 'Angelou',
+              title: 'Poet'
+            }
+          }
+        })
+      })
+
+    siteAppNotOptimisticTop.dispatch({
+      type: 'Posts.CREATE',
+      data: {
+        title: 'So many dalmations'
+      }
+    })
+
+    expect(siteAppNotOptimisticTop.getState()).toEqual({
+      Posts: {
+        loading: false,
+        loadingError: undefined,
+        models: [{
+          cId: 3,
+          loading: true,
+          loadingError: undefined,
+          attributes: {}
+        }]
+      },
+      User: {
+        loading: true,
+        loadingError: undefined,
+        attributes: {
+          first_name: 'Maya',
+          last_name: 'Angelou',
+          title: 'Poet'
+        }
+      }
+    })
+
+    return waitForAppStateUpdateNotOptimisticTop()
+      .then((appState) => {
+        expect(appState).toEqual({
+          Posts: {
+            loading: false,
+            loadingError: undefined,
+            models: [
+              {
+                cId: 3,
+                id: 101,
+                loading: true,
+                loadingError: undefined,
+                attributes: {id: 101, title: 'So many dalmations'}
+              }
+            ]
+          },
+          User: {
+            loading: false,
+            loadingError: undefined,
+            attributes: {
+              first_name: 'Maya',
+              last_name: 'Angelou',
+              title: 'Poet'
+            }
+          }
+        })
+      })
+
+
   })
 })

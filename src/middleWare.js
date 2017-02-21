@@ -1,4 +1,5 @@
 import {
+  determinOptimisticUpdateSetting,
   determineResourceType,
   getResourceIdAttribute,
   getUniqueClientId,
@@ -94,7 +95,7 @@ const fetchResource = ({store, resource, config, data={}, railsAction, controlle
   const fetchParams = fetchParamsOverride || resourceConfig.fetchParams || config.fetchParams
   const url = constructUrl({baseUrl, controller, railsAction, data})
   const options = constructfetchOptions({railsAction, resource, data, config, fetchParams})
-  const optimisticUpdateEnabled = isBool(resourceConfig.optimisticUpdateEnabled) ? resourceConfig.optimisticUpdateEnabled : true
+  const optimisticUpdateEnabled = determinOptimisticUpdateSetting({resourceConfig, config})
   let cId
 
   // NOTE: assigning a cId for new models must happen before optimistic updates

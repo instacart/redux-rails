@@ -1,5 +1,14 @@
 let uniqueClientId = 0
 
+export function determinOptimisticUpdateSetting({resourceConfig, config, defaultConfig={}}) {
+  if (isBool(resourceConfig.optimisticUpdateEnabled)) { return resourceConfig.optimisticUpdateEnabled }
+  if (isBool(config.resources.optimisticUpdateEnabled)) { return config.resources.optimisticUpdateEnabled }
+  if (isBool(config.optimisticUpdateEnabled)) { return config.optimisticUpdateEnabled }
+  if (isBool(defaultConfig.optimisticUpdateEnabled)) { return defaultConfig.optimisticUpdateEnabled }
+
+  return true
+}
+
 export function determineResourceType({controller}) {
   // resource type is determined by wether or not the controller name is plural
   // this may be overly simplistic
