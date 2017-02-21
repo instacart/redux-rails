@@ -4,6 +4,15 @@ Redux Rails
 
 Redux Rails is a Redux middleware for auto-generating the actions, reducers and settings for talking to your RESTful backend. It removes boilerplate and keeps your app consistent.
 
+## Features
+- Simple, pre-defined Redux actions
+- Automated loading state, including loading errors
+- Optionally disabled, optimistic updates
+- Optional response parsing
+- Sane defaults, highly customizable
+- Auto-generated, extendable reducers for each resource
+- And more!
+
 ## How is it done?
 > ###tldr
 > 1. Create your config
@@ -402,6 +411,11 @@ Models and collections each get a few pieces of metadata. Some are optional and 
 - **id (optional)** - the id of the model/resource member.
 - **cId (optional)** - used for internal purposes only.
 
+## Optimistic Updates
+Update and Create actions assume immediate success on the client, by default. If the server returns an error, this data is automatically reverted on the client for you. A loading error will be set on the model. This option can be disabled per config or per resource with the `optimisticUpdateEnabled` attribute.
+
+While an optimistic update is in-flight, previous data is stored in `__prevData`. Using this data directly is not advised, as the structure and permanence of it cannot be guaranteed. Consistently using `attributes` on your models is a far more reliable way to access your data.
+
 ## Usage with React-Redux
 
 First, set up your Redux Rails config, set up your apiReducer and apply the Redux Rails middleware
@@ -478,7 +492,8 @@ const apiConfig = {
         }
       },
       idAttribute: '_id',
-      baseUrl: 'https://your-OTHER-site-url.com/api/'
+      baseUrl: 'https://your-OTHER-site-url.com/api/',
+      optimisticUpdateEnabled: false
     },
     User: {
       controller: 'user',
@@ -610,7 +625,7 @@ App.getState().resources.Posts // { loading: false, models: [ {}, {}, {} ] }
 App.getState().resources.Posts // { loading: false, loadingError: 'Bad data received from server. INDEX calls expect an array.', models: [] }
 ```
 
-#### idAttribute (optional)
+#### idAttribute (optional - default: id)
 This is defaulted to `id` and tells Redux Rails which attribute on your resource is the unique identifier. If your api assigns ids to the attribute `_@@id`, for example, you would set `idAttribute` to `_@@id` for that specific resource or for all resources in the config. Models still get `id` set as metadata no matter the `idAttribute` setting.
 
 Example with `idAttribute` set to `_@@id`:
@@ -630,6 +645,9 @@ Example with `idAttribute` set to `_@@id`:
 
 #### baseUrl (optional)
 Url base for your resource(s). If you'd like a different baseUrl for a specific resource, you can set `baseUrl` on the resource level as well. If you're using multiple configs, each config can have a top-level baseUrl.
+
+#### optimisticUpdateEnabled (optional - default: true)
+Optimistic updates are on by default, but can be disabled per resource or per config using the `optimisticUpdateEnabled` attribute. Disabling optimistic updates will tell Redux Rails to wait for a successful server response before updating or creating models on the client. This can lead to a less responsive feeling app for users, but client state will exactly match the known state of the model on the server.
 
 ### fetchParams
 These are the options sent to the `Fetch` call when making any call to your api. These map directly to the options available in the [Fetch Request object](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request).
