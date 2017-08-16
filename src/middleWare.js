@@ -16,7 +16,19 @@ import {
    DESTROY : 'DELETE',
  }
 
-const constructUrl = ({baseUrl, controller, railsAction, data}) => {
+const constructQueryParam = (queryParams) => (key) => (
+  `${encodeURIComponent(key)}=${encodeURIComponent(queryParams[k])}`
+)
+
+const constructQueryParams = (queryParams, railsAction) => {
+  if(!queryParams || actionMethodMap[railsAction] !== 'GET') return ''
+
+  const keys = Object.keys(queryParams)
+
+  return keys.map(constructQueryParam(queryParams)).join('&')
+}
+
+const constructUrl = ({baseUrl, controller, railsAction, data, fetchParams = {}}) => {
   const resourceType = determineResourceType({controller})
   const urlTail = () => {
     // all actions on a collection, other than index and create, require an id
@@ -27,7 +39,9 @@ const constructUrl = ({baseUrl, controller, railsAction, data}) => {
     return ''
   }
 
-  return `${baseUrl}${controller}${urlTail()}`
+  const queryParams = constructQueryParams(fetchParams.queryParams, railsAction)
+
+  return `${baseUrl}${controller}${urlTail()}${queryParams}`
 }
 
 const constructfetchOptions = ({railsAction, resource, config, data, fetchParams={}}) => {
@@ -93,8 +107,8 @@ const fetchResource = ({store, resource, config, data={}, railsAction, controlle
   const controller = controllerOverride || resourceConfig.controller
   const idAttribute = getResourceIdAttribute({config, resource})
   const fetchParams = fetchParamsOverride || resourceConfig.fetchParams || config.fetchParams
-  const url = constructUrl({baseUrl, controller, railsAction, data})
   const options = constructfetchOptions({railsAction, resource, data, config, fetchParams})
+  const url = constructUrl({baseUrl, controller, railsAction, data, fetchParams})
   const optimisticUpdateEnabled = determinOptimisticUpdateSetting({resourceConfig, config})
   let cId
 
