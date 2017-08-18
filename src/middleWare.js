@@ -28,7 +28,7 @@ const constructQueryParams = (queryParams, railsAction) => {
   return keys.map(constructQueryParam(queryParams)).join('&')
 }
 
-const constructUrl = ({baseUrl, controller, railsAction, data, fetchParams = {}}) => {
+const constructUrl = ({baseUrl, controller, railsAction, data, queryParams = {}}) => {
   const resourceType = determineResourceType({controller})
   const urlTail = () => {
     // all actions on a collection, other than index and create, require an id
@@ -39,7 +39,7 @@ const constructUrl = ({baseUrl, controller, railsAction, data, fetchParams = {}}
     return ''
   }
 
-  const queryParams = constructQueryParams(fetchParams.queryParams, railsAction)
+  const queryParams = constructQueryParams(queryParams, railsAction)
 
   return `${baseUrl}${controller}${urlTail()}${queryParams}`
 }
@@ -101,14 +101,15 @@ const enqueueFetch = (resource, fetchData) => {
   }
 }
 
-const fetchResource = ({store, resource, config, data={}, railsAction, controllerOverride, fetchParamsOverride}) => {
+const fetchResource = ({store, resource, config, data={}, railsAction, controllerOverride, fetchParamsOverride, queryParamsOverride}) => {
   const resourceConfig = config.resources[resource]
   const baseUrl = resourceConfig.baseUrl || config.baseUrl
   const controller = controllerOverride || resourceConfig.controller
   const idAttribute = getResourceIdAttribute({config, resource})
   const fetchParams = fetchParamsOverride || resourceConfig.fetchParams || config.fetchParams
+  const queryParams = queryParamsOverride || resourceConfig.queryParams || config.queryParams
   const options = constructfetchOptions({railsAction, resource, data, config, fetchParams})
-  const url = constructUrl({baseUrl, controller, railsAction, data, fetchParams})
+  const url = constructUrl({baseUrl, controller, railsAction, data, fetchParams, queryParams})
   const optimisticUpdateEnabled = determinOptimisticUpdateSetting({resourceConfig, config})
   let cId
 
@@ -181,8 +182,17 @@ export default (config) => {
   return (store) => (next) => {
     return (action) => {
       const [ resource, railsAction ] = action.type.split('.')
-      const { data, controller, fetchParams } = action
-      const fetchData = {store, resource, config, data, railsAction, controllerOverride: controller, fetchParamsOverride: fetchParams}
+      const { data, controller, fetchParams, queryParams } = action
+      const fetchData = {
+        store,
+        resource,
+        config,
+        data,
+        railsAction,
+        controllerOverride: controller,
+        fetchParamsOverride: fetchParams
+        queryParamsOverride: queryParams
+      }
       const resourceConfig = config.resources[resource]
 
       if (resourceConfig && actionMethodMap[railsAction]) {
