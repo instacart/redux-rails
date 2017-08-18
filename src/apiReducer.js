@@ -185,12 +185,13 @@ export default (config) => {
       const resourceNameSpace = getResourceNameSpace({config, resource})
       const isSingleModel = resourceNameSpace === 'attributes'
       const idAttribute = getResourceIdAttribute({config, resource})
-
+      const { queryParams } = action.data || {}
       switch(action.type) {
         case `${resource}.INDEX`: {
           return Object.assign({}, state, createNewCollection({
             metaData: {
-              loading: true
+              loading: true,
+              queryParams
             }
           }))
         }
@@ -239,7 +240,7 @@ export default (config) => {
 
           if (isSingleModel) {
             return createNewModel({
-              metaData: { loading: true },
+              metaData: { loading: true, queryParams },
               attributes: state.attributes
             })
           }

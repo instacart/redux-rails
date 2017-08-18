@@ -182,7 +182,8 @@ export default (config) => {
   return (store) => (next) => {
     return (action) => {
       const [ resource, railsAction ] = action.type.split('.')
-      const { data, controller, fetchParams, queryParams } = action
+      const { data, controller, fetchParams } = action
+      const { queryParams } = data || {}
       const fetchData = {
         store,
         resource,

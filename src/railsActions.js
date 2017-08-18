@@ -1,14 +1,17 @@
-export function index({resource, controller}) {
+export function index({resource, controller, queryParams}) {
   return {
     type: `${resource}.INDEX`,
+    data: {
+      queryParams
+    }
     controller
   }
 }
 
-export function show({id, resource, controller}) {
+export function show({id, resource, controller, queryParams}) {
   return {
     type: `${resource}.SHOW`,
-    data: { id },
+    data: { id, queryParams },
     controller
   }
 }

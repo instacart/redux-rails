@@ -80,7 +80,13 @@ console.log(App.getState().resources.User)
 
 Fetch list of members from a resource collection.
 ```js
-App.dispatch(railsActions.index({resource: 'Posts'}))
+App.dispatch(railsActions.index({
+  resource: 'Posts',
+  queryParams: {
+    q: 'React best practices',
+    page: 2
+  }
+}))
 ```
 
 HTTP GET on resources. Example: `GET http://my-site/myapi/posts`
