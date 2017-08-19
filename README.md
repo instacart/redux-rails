@@ -269,7 +269,9 @@ App.getState()
   {
     resources: {
       User: {
-        queryParams: {},
+        queryParams: {
+          verbose: false
+        },
         loading: false,
         loadingError: undefined,
         attributes: {
@@ -279,7 +281,9 @@ App.getState()
         }
       },
       Users: {
-        queryParams: {},
+      queryParams: {
+          q: 'rebels'
+        },
         loading: false,
         loadingError: undefined,
         models: [
@@ -327,7 +331,6 @@ App.getState()
 Models are always an object with metadata and an attributes object:
 ```js
 {
-  queryParams: {},
   loading: false,
   loadingError: undefined,
   id: 123,
@@ -344,7 +347,9 @@ Models are always an object with metadata and an attributes object:
 Collections are an object with metadata and an array of models.
 ```js
 Users: {
-  queryParams: {},
+  queryParams: {
+    q: 'rebels'
+  },
   loading: false,
   loadingError: undefined,
   models: [
@@ -399,7 +404,6 @@ Singular resources, and models within a collection, can be updated, destroyed, o
   /*
   after loading finished, the model would be updated to:
   {
-    queryParams: {},
     loading: false,
     loadingError: undefined,
     id: 124,
