@@ -78,7 +78,7 @@ console.log(App.getState().resources.User)
 
 ### index
 
-Fetch list of members from a resource collection.
+Fetch list of members from a resource collection.   
 ```js
 App.dispatch(railsActions.index({
   resource: 'Posts',
@@ -269,6 +269,7 @@ App.getState()
   {
     resources: {
       User: {
+        queryParams: {},
         loading: false,
         loadingError: undefined,
         attributes: {
@@ -278,6 +279,7 @@ App.getState()
         }
       },
       Users: {
+        queryParams: {},
         loading: false,
         loadingError: undefined,
         models: [
@@ -325,6 +327,7 @@ App.getState()
 Models are always an object with metadata and an attributes object:
 ```js
 {
+  queryParams: {},
   loading: false,
   loadingError: undefined,
   id: 123,
@@ -341,6 +344,7 @@ Models are always an object with metadata and an attributes object:
 Collections are an object with metadata and an array of models.
 ```js
 Users: {
+  queryParams: {},
   loading: false,
   loadingError: undefined,
   models: [
@@ -395,6 +399,7 @@ Singular resources, and models within a collection, can be updated, destroyed, o
   /*
   after loading finished, the model would be updated to:
   {
+    queryParams: {},
     loading: false,
     loadingError: undefined,
     id: 124,
@@ -415,6 +420,7 @@ Models and collections each get a few pieces of metadata. Some are optional and 
 - **loadingError** - any error that occurred during the last rails action. Cleared on subsequent actions.
 - **id (optional)** - the id of the model/resource member.
 - **cId (optional)** - used for internal purposes only.
+- **queryParams** - the query params for the current corresponding model or collection.
 
 ## Optimistic Updates
 Update and Create actions assume immediate success on the client, by default. If the server returns an error, this data is automatically reverted on the client for you. A loading error will be set on the model. This option can be disabled per config or per resource with the `optimisticUpdateEnabled` attribute.
@@ -498,7 +504,10 @@ const apiConfig = {
       },
       idAttribute: '_id',
       baseUrl: 'https://your-OTHER-site-url.com/api/',
-      optimisticUpdateEnabled: false
+      optimisticUpdateEnabled: false,
+      queryParams: {
+        deleted: false
+      }
     },
     User: {
       controller: 'user',
@@ -520,6 +529,9 @@ const apiConfig = {
   fetchParams: {
     headers: {
       'content-type':'application/json'
+    },
+    queryParams: {
+      foo: 'I am the fallback query string for GET requests!'
     }
   }
 }
@@ -562,10 +574,10 @@ const apiConfig = {
 ```
 
 
-#### controller (required)
+### controller (required)
 The controller attribute tells Redux Rails what specific url to make HTTP actions against. For example, the resource `Posts` could be found at `https://your-site-url.com/api/posts`. This would make the baseUrl for this resource `https://your-site-url.com/api/` and the controller `posts`. The controller does not need to match the name of the resource, though this is generally good practice for a RESTful api. If you're using Rails, the controller set here should probably match the one set in your routes file.
 
-#### parse (optional)
+### parse (optional)
 This can be either a single function or an object with two functions, `member` and `collection`. These functions are used to parse the response from your api, and its where you should do any data transformation before the data is added to your Redux store. `member` is used for responses related to a specific model and `collection` is used for responses to `index` calls.
 
 Example of a single function for all resource types:
@@ -630,7 +642,7 @@ App.getState().resources.Posts // { loading: false, models: [ {}, {}, {} ] }
 App.getState().resources.Posts // { loading: false, loadingError: 'Bad data received from server. INDEX calls expect an array.', models: [] }
 ```
 
-#### idAttribute (optional - default: id)
+### idAttribute (optional - default: id)
 This is defaulted to `id` and tells Redux Rails which attribute on your resource is the unique identifier. If your api assigns ids to the attribute `_@@id`, for example, you would set `idAttribute` to `_@@id` for that specific resource or for all resources in the config. Models still get `id` set as metadata no matter the `idAttribute` setting.
 
 Example with `idAttribute` set to `_@@id`:
@@ -648,16 +660,32 @@ Example with `idAttribute` set to `_@@id`:
 }
 ```
 
-#### baseUrl (optional)
+### baseUrl (optional)
 Url base for your resource(s). If you'd like a different baseUrl for a specific resource, you can set `baseUrl` on the resource level as well. If you're using multiple configs, each config can have a top-level baseUrl.
 
-#### optimisticUpdateEnabled (optional - default: true)
+### optimisticUpdateEnabled (optional - default: true)
 Optimistic updates are on by default, but can be disabled per resource or per config using the `optimisticUpdateEnabled` attribute. Disabling optimistic updates will tell Redux Rails to wait for a successful server response before updating or creating models on the client. This can lead to a less responsive feeling app for users, but client state will exactly match the known state of the model on the server.
 
 ### fetchParams
 These are the options sent to the `Fetch` call when making any call to your api. These map directly to the options available in the [Fetch Request object](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request).
 
-This is where you would set your headers or credentials, for example. This can be set per resource or top-level. Each config, if you're using mutliple configs, can also have their own settings.
+This is where you would set your headers or credentials, for example. This can be set per resource or top-level. Each config, if you're using multiple configs, can also have their own settings.
+
+### queryParams
+This attribute will be translated to the appropriate query string for GET requests.
+Query params can be set globally at the top level of the apiConfig, per resource, or per call.
+Valid values are primitives and arrays. Array values will be translated to the form `keyname[]=element0&keyname[]=element1`.
+Invalid values will throw an error in development and are ignored in production.
+
+```
+queryParams: {
+  q: 'foobar',
+  page: 2,
+  categories: [3, 4]
+}
+
+// '?q=foobar&page=2&categories[]=3&categories[]=4'
+```
 
 ### disableFetchQueueing
 Fetch queueing can be disabled per config or per resource. Resources with fetch queueing disabled will not execute actions in the order they were called, but will instead execute actions in the order they are received from the server. *This makes your app susceptible to race conditions.* For example, if a user edits a posts and then edits it again very quickly, the first edit may return from the server after the second, giving the user a false representation of the post's state on the server.

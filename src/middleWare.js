@@ -39,9 +39,9 @@ const constructUrl = ({baseUrl, controller, railsAction, data, queryParams = {}}
     return ''
   }
 
-  const queryParams = constructQueryParams(queryParams, railsAction)
+  const queryString = constructQueryParams(queryParams, railsAction)
 
-  return `${baseUrl}${controller}${urlTail()}${queryParams}`
+  return `${baseUrl}${controller}${urlTail()}${queryString}`
 }
 
 const constructfetchOptions = ({railsAction, resource, config, data, fetchParams={}}) => {
@@ -191,7 +191,7 @@ export default (config) => {
         data,
         railsAction,
         controllerOverride: controller,
-        fetchParamsOverride: fetchParams
+        fetchParamsOverride: fetchParams,
         queryParamsOverride: queryParams
       }
       const resourceConfig = config.resources[resource]

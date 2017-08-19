@@ -3,7 +3,7 @@ export function index({resource, controller, queryParams}) {
     type: `${resource}.INDEX`,
     data: {
       queryParams
-    }
+    },
     controller
   }
 }
