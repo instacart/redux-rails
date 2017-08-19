@@ -99,7 +99,7 @@ const destroyMember = ({id, state}) => {
   return state.models.filter(model => model.id !== id)
 }
 
-const setMemberLoading = ({id, cId, state}) => {
+const setMemberLoading = ({id, cId, state, queryParams}) => {
   // sets the loading state of a member within a collection
   const currentModel = findModel({id, cId, state})
 
@@ -107,7 +107,7 @@ const setMemberLoading = ({id, cId, state}) => {
     // model does not yet exist in models array -- create it.
     return collectionWithNewModel({state,
       model: createNewModel({id, cId,
-        metaData: { loading: true }
+        metaData: { loading: true, queryParams }
       })
     })
   }
@@ -115,7 +115,7 @@ const setMemberLoading = ({id, cId, state}) => {
   // model already exists in model array -- update its loading state.
   return collectionWithUpdatedModel({id, cId, state,
     updatedModel: createNewModel({id, cId,
-      metaData: { loading: true },
+      metaData: { loading: true, queryParams },
       attributes: currentModel.attributes
     }
   )})
@@ -246,7 +246,7 @@ export default (config) => {
           }
 
           return Object.assign({}, state, {
-            models: setMemberLoading({id, state})
+            models: setMemberLoading({id, state, queryParams})
           })
         }
         case `${resource}.SHOW_SUCCESS`: {
