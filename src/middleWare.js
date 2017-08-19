@@ -16,16 +16,28 @@ import {
    DESTROY : 'DELETE',
  }
 
-const constructQueryParam = (queryParams) => (key) => (
-  `${encodeURIComponent(key)}=${encodeURIComponent(queryParams[k])}`
+
+const constructBaseQueryParam = (key, value) => (
+  `${key}=${encodeURIComponent(value)}`
 )
 
-const constructQueryParams = (queryParams, railsAction) => {
-  if(!queryParams || actionMethodMap[railsAction] !== 'GET') return ''
+const constructArrayQueryParam = (key, values) => (
+  values.map(value => constructBaseQueryParam(`${key}[]`, value))
+)
 
+const constructQueryParam = (key, value) => (
+  Array.isArray(value)
+    ? constructArrayQueryParam(key, value)
+    : constructBaseQueryParam(key, value)
+)
+
+const constructQueryParams = (queryParams = {}, railsAction) => {
   const keys = Object.keys(queryParams)
+  if(keys.length === 0 || actionMethodMap[railsAction] !== 'GET') return ''
 
-  return keys.map(constructQueryParam(queryParams)).join('&')
+  const queryString = keys.map(key => constructQueryParam(key, queryParams[key])).join('&')
+
+  return `?${queryString}`
 }
 
 const constructUrl = ({baseUrl, controller, railsAction, data, queryParams = {}}) => {

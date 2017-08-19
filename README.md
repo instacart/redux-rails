@@ -679,7 +679,6 @@ This is where you would set your headers or credentials, for example. This can b
 This attribute will be translated to the appropriate query string for GET requests.
 Query params can be set globally at the top level of the apiConfig, per resource, or per call.
 Valid values are primitives and arrays. Array values will be translated to the form `keyname[]=element0&keyname[]=element1`.
-Invalid values will throw an error in development and are ignored in production.
 
 ```
 queryParams: {
