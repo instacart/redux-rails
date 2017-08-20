@@ -32,7 +32,11 @@ const constructQueryParam = (key, value) => (
 )
 
 const constructQueryParams = (queryParams = {}, railsAction) => {
-  const keys = Object.keys(queryParams)
+  // Do not construct query string for keys with undefined values
+  const keys = Object.keys(queryParams).filter(
+    key => queryParams[key] !== undefined || queryParams[key] !== null
+  )
+
   if(keys.length === 0 || actionMethodMap[railsAction] !== 'GET') return ''
 
   const queryString = keys.map(key => constructQueryParam(key, queryParams[key])).join('&')
