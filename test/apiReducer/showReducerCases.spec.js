@@ -4,6 +4,36 @@ import { standardConfig } from './exampleConfigs'
 describe('SHOW actions', () => {
   const showReducer = apiReducer(standardConfig)
   let showReducerState = {}
+  let queryParams = { foo: 'bar' }
+
+
+  it('should create member and set queryParams on the member within a collection', () => {
+    showReducerState = showReducer(showReducerState, railsActions.show({
+      resource: 'Posts',
+      id: 123,
+      queryParams
+    }))
+    expect(showReducerState).toEqual(
+      {
+        Posts: {
+          loading: false,
+          loadingError: undefined,
+          models: [{
+            id: 123,
+            loading: true,
+            loadingError: undefined,
+            attributes: {},
+            queryParams
+          }]
+        },
+        User: {
+          loading: false,
+          loadingError: undefined,
+          attributes: {}
+        }
+      }
+    )
+  })
 
   it('should create member and set a loading state on the member within a collection', () => {
     showReducerState = showReducer(showReducerState, railsActions.show({
@@ -26,6 +56,34 @@ describe('SHOW actions', () => {
           loading: false,
           loadingError: undefined,
           attributes: {}
+        }
+      }
+    )
+  })
+
+  it('should set the queryParams on the singlar resource', () => {
+    showReducerState = showReducer(showReducerState, railsActions.show({
+      resource: 'User',
+      queryParams
+    }))
+
+    expect(showReducerState).toEqual(
+      {
+        Posts: {
+          loading: false,
+          loadingError: undefined,
+          models: [{
+            id: 123,
+            loading: true,
+            loadingError: undefined,
+            attributes: {}
+          }]
+        },
+        User: {
+          loading: true,
+          loadingError: undefined,
+          attributes: {},
+          queryParams
         }
       }
     )

@@ -40,6 +40,15 @@ const dispatchWithStoreOf = (storeData, action) => {
 // Index
 nock('http://localhost:3000')
   .persist()
+  .get('/posts?q=How%20to%20test&categories[]=1,categories[]=2,categories[]=3')
+  .reply(200, [
+    {id: 123, title: 'How to test'},
+    {id: 124, title: 'How to test again'},
+    {id: 125, title: 'How to test and again'}
+  ]);
+
+nock('http://localhost:3000')
+  .persist()
   .get('/posts')
   .reply(200, [
     {id: 123, title: 'How to test'},
@@ -135,6 +144,41 @@ describe('middleWare', () => {
       }, 50)
     })
   }
+
+  it('should save the last used queryParam', () => {
+    const action = {
+      type: 'Posts.INDEX',
+      data: {
+        queryParams: {
+          q: 'How to test',
+          categories: [1, 2, 3]
+        }
+      }
+    }
+    let appState = siteApp.getState()
+
+    expect(dispatchWithStoreOf({}, action)).toEqual(action)
+
+    siteApp.dispatch(action)
+    appState = siteApp.getState()
+
+    expect(appState).toEqual({
+      Posts: {
+        loading: true,
+        loadingError: undefined,
+        models: [],
+        queryParams: {
+          q: 'How to test',
+          categories: [1, 2, 3]
+        }
+      },
+      User: {
+        "loading": false,
+        "loadingError": undefined,
+        "attributes": {}
+      }
+    })
+  })
 
   it('should send along action', () => {
     const action = {

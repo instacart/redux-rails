@@ -5,18 +5,27 @@ describe('railsActions', () => {
   describe('INDEX action', () => {
     const resource = 'Posts'
     const type = `${resource}.INDEX`
+    const baseExpectedAction = { type, data: { queryParams: undefined } }
+    const baseOptions = { resource }
 
     it('should create an action to call INDEX on the specified resource', () => {
-      const expectedAction  = { type }
+      const expectedAction = baseExpectedAction
 
-      expect(index({resource})).toEqual(expectedAction)
+      expect(index(baseOptions)).toEqual(expectedAction)
     })
 
     it('should create an action to call INDEX with the specified controller', () => {
       const controller = `foos`
-      const expectedAction  = { type, controller }
+      const expectedAction  = { ...baseExpectedAction, controller }
 
-      expect(index({resource, controller})).toEqual(expectedAction)
+      expect(index({...baseOptions, controller})).toEqual(expectedAction)
+    })
+
+    it('should create an action to call INDEX with the specified queryParams', () => {
+      const queryParams = { q: 'fooBar'}
+      const expectedAction  = { ...baseExpectedAction, data: { queryParams } }
+
+      expect(index({...baseOptions, queryParams})).toEqual(expectedAction)
     })
   })
 
