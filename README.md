@@ -1,5 +1,6 @@
 Redux Rails
 =========================
+[![CircleCI](https://circleci.com/gh/instacart/redux-rails.svg?style=svg)](https://circleci.com/gh/instacart/redux-rails)
 
 Redux Rails is a Redux middleware for auto-generating the actions, reducers and settings for talking to your RESTful backend. It removes boilerplate and keeps your app consistent.
 
