@@ -15,6 +15,10 @@ export const standardConfig = {
   }
 }
 
+export const standardFuncConfig = () => {
+  return standardConfig
+}
+
 export const commentsConfig = {
   resources: {
     Comments: {

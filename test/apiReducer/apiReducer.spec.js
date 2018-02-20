@@ -1,15 +1,35 @@
-import { standardConfig, configWithCustomReducer, configWithModelsReady } from './exampleConfigs'
+import { standardConfig, standardFuncConfig, configWithCustomReducer, configWithModelsReady } from './exampleConfigs'
 import { apiReducer, railsActions } from 'redux-rails'
 
 describe('apiReducer', () => {
 
   const standardReducer = apiReducer(standardConfig)
+  const standardFuncConfigReducer = apiReducer(standardFuncConfig)
   const customReducer = apiReducer(configWithCustomReducer)
 
 
   it('should return correct intial state', () => {
     expect(
       standardReducer(undefined, {})
+    ).toEqual(
+      {
+        Posts: {
+          loading: false,
+          loadingError: undefined,
+          models: []
+        },
+        User: {
+          loading: false,
+          loadingError: undefined,
+          attributes: {}
+        }
+      }
+    )
+  })
+
+  it('should return correct intial state with function config', () => {
+    expect(
+      standardFuncConfigReducer(undefined, {})
     ).toEqual(
       {
         Posts: {
