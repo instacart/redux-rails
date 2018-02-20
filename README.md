@@ -794,3 +794,44 @@ const App = createStore(
 ```
 
 The first config given to `combineConfigs` is used as the default for top-level `baseUrl` and `fetchParams`. These can be overriden per config and per resource.
+
+### Passing config as a function
+
+If you need to determine some data for your config after your redux app has been instantiated, you can pass a function instead of an object as your config parameter. That function must return a valid config object.
+
+```js
+import { createStore, applyMiddleware, compose } from 'redux'
+import { middleWare, apiReducer } from 'redux-rails'
+
+const getMyConfig = () => {
+  return {
+    baseUrl: 'https://your-site-url.com/api/',
+    fetchParams: {
+      headers: {
+        'content-type':'application/json',
+        'csrf-token': myReduxApp.getState().csrfToken // no longer hard-coded at initialization
+      }
+    }
+    resources: {
+      Posts: {
+        controller: 'posts'
+      },
+      User: {
+        controller: 'user'
+      }
+    }
+  }
+}
+
+// Create your Redux store just like you would with an object
+
+const App = createStore(
+  {
+    resources: apiReducer(getMyConfig) // auto-generates reducers
+  },
+  {},
+  compose(
+    applyMiddleware(middleWare(getMyConfig))
+  )
+)
+```
