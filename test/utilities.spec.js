@@ -1,5 +1,6 @@
 import {
   determineResourceType,
+  getConfig,
   getResourceNameSpace,
   getResourceIdAttribute,
   getUniqueClientId
@@ -105,5 +106,42 @@ describe('utilities', () => {
       expect(int3).not.toEqual(int4)
     })
   })
+  
+  describe('getConfig', () => {
+    it('should return config object when passed object', () => {
+      const config = {
+        baseUrl: 'http://localhost:3000/',
+        resources: {
+          Posts: {
+            controller: 'posts'
+          },
+          User: {
+            controller: 'user'
+          }
+        }
+      }
 
+      expect(getConfig({config})).toEqual(config)
+    })
+
+    it('should return config object when passed function', () => {
+      const config = {
+        baseUrl: 'http://localhost:3000/',
+        resources: {
+          Posts: {
+            controller: 'posts'
+          },
+          User: {
+            controller: 'user'
+          }
+        }
+      }
+
+      const configFunc = () => {
+        return config
+      }
+
+      expect(getConfig({config: configFunc})).toEqual(config)
+    })
+  })
 })

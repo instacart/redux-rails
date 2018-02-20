@@ -1,5 +1,6 @@
 import { combineReducers } from 'redux'
 import {
+  getConfig,
   getResourceNameSpace,
   getResourceIdAttribute,
   getUniqueClientId
@@ -177,7 +178,8 @@ const getInitialState = ({config, resource}) => {
 
 
 // main reducer
-export default (config) => {
+export default (inConfig) => {
+  const config = getConfig({config: inConfig})
   const reducers = {}
 
   Object.keys(config.resources).forEach((resource) => {

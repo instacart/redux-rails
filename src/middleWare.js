@@ -1,6 +1,7 @@
 import {
   determinOptimisticUpdateSetting,
   determineResourceType,
+  getConfig,
   getResourceIdAttribute,
   getUniqueClientId,
   isBool
@@ -194,7 +195,8 @@ const parseResult = ({json, resource, config, resourceType}) => {
   }
 }
 
-export default (config) => {
+export default (inConfig) => {
+  const config = getConfig({config: inConfig})
   return (store) => (next) => {
     return (action) => {
       const [ resource, railsAction ] = action.type.split('.')
