@@ -196,9 +196,9 @@ const parseResult = ({json, resource, config, resourceType}) => {
 }
 
 export default (inConfig) => {
-  const config = getConfig({config: inConfig})
   return (store) => (next) => {
     return (action) => {
+      const config = getConfig({config: inConfig, store: store.getState()})
       const [ resource, railsAction ] = action.type.split('.')
       const { data, controller, fetchParams } = action
       const { queryParams } = data || {}

@@ -143,5 +143,85 @@ describe('utilities', () => {
 
       expect(getConfig({config: configFunc})).toEqual(config)
     })
+
+    it('should be able to use store state when passed back', () => {
+      const config = {
+        baseUrl: 'http://localhost:3000/',
+        fetchParams: {
+          headers: {
+            'some-header': 'testString'
+          }
+        },
+        resources: {
+          Posts: {
+            controller: 'posts'
+          },
+          User: {
+            controller: 'user'
+          }
+        }
+      }
+
+      const configFunc = (storeState = {}) => {
+        return {
+          baseUrl: 'http://localhost:3000/',
+          fetchParams: {
+            headers: {
+              'some-header': storeState.testData
+            }
+          },
+          resources: {
+            Posts: {
+              controller: 'posts'
+            },
+            User: {
+              controller: 'user'
+            }
+          }
+        }
+      }
+
+      expect(getConfig({config: configFunc, store: { testData: 'testString' }})).toEqual(config)
+    })
+
+    it('should be able to handle no store state', () => {
+      const configWithoutStore = {
+        baseUrl: 'http://localhost:3000/',
+        fetchParams: {
+          headers: {
+            'some-header': undefined
+          }
+        },
+        resources: {
+          Posts: {
+            controller: 'posts'
+          },
+          User: {
+            controller: 'user'
+          }
+        }
+      }
+      
+      const configFunc = (storeState = {}) => {
+        return {
+          baseUrl: 'http://localhost:3000/',
+          fetchParams: {
+            headers: {
+              'some-header': storeState.testData
+            }
+          },
+          resources: {
+            Posts: {
+              controller: 'posts'
+            },
+            User: {
+              controller: 'user'
+            }
+          }
+        }
+      }
+
+      expect(getConfig({config: configFunc})).toEqual(configWithoutStore)
+    })
   })
 })

@@ -799,17 +799,23 @@ The first config given to `combineConfigs` is used as the default for top-level 
 
 If you need to determine some data for your config after your redux app has been instantiated, you can pass a function instead of an object as your config parameter. That function must return a valid config object.
 
+The function will be passed the current redux store state during the middleware proccesses. This can be useful if you need redux state in your Redux Rails config. 
+> Note that the redux store will be an empty object on initialization. Your config function must be able to handle this. See example below.
+
 ```js
 import { createStore, applyMiddleware, compose } from 'redux'
 import { middleWare, apiReducer } from 'redux-rails'
+import { myUtil } from 'my/utilities/directory'
 
-const getMyConfig = () => {
+const getMyConfig = (store = {}) => {
   return {
     baseUrl: 'https://your-site-url.com/api/',
     fetchParams: {
       headers: {
         'content-type':'application/json',
-        'csrf-token': myReduxApp.getState().csrfToken // no longer hard-coded at initialization
+        'csrf-token': store.csrfToken, // get some data from the store
+        'another-header': store.deep && store.deep.object.thing, // value in deep object must be ready for init empty store state
+        'some-other-header': myUtil.getSomeData() // no longer hard-coded at initialization
       }
     }
     resources: {

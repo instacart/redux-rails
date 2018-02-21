@@ -38,9 +38,9 @@ export function getUniqueClientId() {
 
 export function isBool(val) { return typeof val === 'boolean' }
 
-export function getConfig({config}) {
+export function getConfig({config, store}) {
   if (typeof config === 'function') {
-    return config()
+    return config(store)
   }
 
   return config
