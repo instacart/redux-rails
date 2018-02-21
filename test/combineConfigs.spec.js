@@ -343,4 +343,47 @@ describe('combineConfigs', () => {
     expect(config4).toEqual(config4Clean)
   })
 
+  it('should combine functions that return configs', () => {
+    const getConfig1 = () => { return defaultConfig }
+    const getConfig2 = () => { return postsConfig }
+    const finalConfig = {
+      baseUrl: 'http://localhost:3000/',
+      resources: {
+        Posts: {
+          controller: 'posts',
+          baseUrl: 'http://localhost:3000/',
+          optimisticUpdateEnabled: true
+        }
+      },
+      fetchParams: {
+        headers: {
+          'content-type':'application/json'
+        }
+      }
+    }
+
+    expect(combineConfigs(getConfig1, getConfig2)).toEqual(finalConfig)
+  })
+
+  it('should combine functionsthat return configs and regular object configs', () => {
+    const getConfig1 = () => { return defaultConfig }
+    const finalConfig = {
+      baseUrl: 'http://localhost:3000/',
+      resources: {
+        Posts: {
+          controller: 'posts',
+          baseUrl: 'http://localhost:3000/',
+          optimisticUpdateEnabled: true
+        }
+      },
+      fetchParams: {
+        headers: {
+          'content-type':'application/json'
+        }
+      }
+    }
+
+    expect(combineConfigs(getConfig1, postsConfig)).toEqual(finalConfig)
+  })
+
 })

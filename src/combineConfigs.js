@@ -1,13 +1,14 @@
-import { determinOptimisticUpdateSetting, isBool } from './utilities'
+import { determinOptimisticUpdateSetting, getConfig, isBool } from './utilities'
 
 export default (...configs) => {
-  const defaultConfig = configs[0] || {} // the first config is used as the default settings
+  const defaultConfig = getConfig({config: configs[0]}) || {} // the first config is used as the default settings
   let finalConfig = Object.assign({}, defaultConfig, {
     resources: Object.assign({}, defaultConfig.resources)
   })
 
   configs
-    .map((config) => {
+    .map((inConfig) => {
+      const config = getConfig({config: inConfig})
       if (!config.resources) { return }
       const newResources = {}
       Object.keys(config.resources || {}).forEach((resourceName) => {
