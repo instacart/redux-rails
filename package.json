@@ -28,7 +28,7 @@
     "babel-preset-stage-3": "^6.17.0",
     "es6-promise": "^4.0.5",
     "isomorphic-fetch": "^2.2.1",
-    "jest": "^18.1.0",
+    "jest": "^22.4.2",
     "nock": "^9.0.2",
     "redux": ">=3.6.0",
     "webpack": "^2.2.0"

@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start":  "node_modules/.bin/webpack --process --watch",
+    "start": "node_modules/.bin/webpack --process --watch",
     "test": "echo \"ERROR: no tests defined for redux rails demo. Did you mean to run tests from the src directory?\" && exit 1"
   },
   "author": "Dominic Cocchiarella",
