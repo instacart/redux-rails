@@ -138,12 +138,9 @@ nock('http://localhost:3000')
 
 describe('middleWare', () => {
   const waitForAppStateUpdate = () => {
-    console.log('waitForAppStateUpdate called')
 
     return new Promise((resolve, reject) => {
-      console.log('waitForAppStateUpdate promise beginning')
       setTimeout(() => {
-        console.log('waitForAppStateUpdate resolving')
         resolve(siteApp.getState())
       }, 50)
     })
@@ -212,7 +209,6 @@ describe('middleWare', () => {
   it('Successful index call should update app state with returned models', () => {
     return waitForAppStateUpdate()
       .then((appState) => {
-        console.log('Successful index call should update app state with returned models reached assertion!')
         expect(appState).toEqual({
           Posts: {
             loading: false,
@@ -440,7 +436,7 @@ describe('middleWare', () => {
       data: { id: 123 }
     }
 
-    siteApp.dispatch(action)
+    siteApp.dispatch(action).catch(err => { /*do nothing*/ })
 
     expect(siteApp.getState()).toEqual({
       Posts: {
@@ -488,7 +484,7 @@ describe('middleWare', () => {
       data: { id: 667 }
     }
 
-    siteApp.dispatch(action)
+    siteApp.dispatch(action).catch(err => { /*do nothing*/ })
 
     expect(siteApp.getState()).toEqual({
       Posts: {

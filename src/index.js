@@ -7,5 +7,5 @@ export {
   apiReducer,
   combineConfigs,
   middleWare,
-  railsActions
+  railsActions,
 }

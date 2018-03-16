@@ -101,8 +101,6 @@ const dispatchFetchError = ({store, resource, railsAction, error, id, cId, optim
 }
 
 const dispatchFetchSuccess = ({store, resource, railsAction, id, cId, json, config, controller, resolve}) => {
-  console.log('dispatchFetchSuccess')
-  console.log('resolve func', resolve)
   const type = `${resource}.${railsAction}_SUCCESS`
   const payload = {type, cId, id,
     response: parseResult({json, resource, config,
@@ -152,7 +150,6 @@ const fetchResource = ({store, resource, config, data={}, railsAction, controlle
 
   fetch(url, options)
     .then((response) => {
-      console.log('GOT RESPONSE!', reponse)
       response.json()
         .then((json) => {
           const id = (json && json[idAttribute]) || data.id
@@ -163,7 +160,6 @@ const fetchResource = ({store, resource, config, data={}, railsAction, controlle
             })
           }
 
-          console.log('RESPONSE OK!', json)
           dispatchFetchSuccess({store, resource, railsAction, id, cId, json, config, controller, optimisticUpdateEnabled, resolve})
         })
         .catch((error) => {
@@ -208,7 +204,7 @@ const parseResult = ({json, resource, config, resourceType}) => {
 
 const handleAction = ({action, config, fetchData, next, resource, resourceConfig}) => {
   const promise = new Promise((resolve, reject) => {
-    const data = { resolve, reject, ...fetchData}
+    const data = { resolve, reject, ...fetchData} 
 
     if (config.disableFetchQueueing || resourceConfig.disableFetchQueueing) {
       // Fetch queueing disabled, let the fetch run immediately
@@ -218,9 +214,8 @@ const handleAction = ({action, config, fetchData, next, resource, resourceConfig
     enqueueFetch(resource, data)
   })
 
-  return isPromise(action)
-    ? promise
-    : next(action)
+  next(action)
+  return promise
 }
 
 export default (inConfig) => {
@@ -241,6 +236,9 @@ export default (inConfig) => {
         queryParamsOverride: queryParams
       }
       const resourceConfig = config.resources[resource]
+
+      // action does not have fetching side effects
+      if (!resourceConfig || !actionMethodMap[railsAction]) { return next(action) }
 
       return handleAction({action, config, fetchData, next, resource, resourceConfig})
     }
