@@ -45,7 +45,3 @@ export const getConfig = ({config, store}) => {
 
   return config
 }
-
-export const isPromise = (val) => {
-  return val && typeof val.then === 'function'
-}
