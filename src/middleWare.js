@@ -101,7 +101,8 @@ const dispatchFetchError = ({store, resource, railsAction, error, id, cId, optim
 
 const dispatchFetchSuccess = ({store, resource, railsAction, id, cId, json, config, controller, resolve}) => {
   const type = `${resource}.${railsAction}_SUCCESS`
-  const payload = {type, cId, id,
+  const payload = {
+    type, cId, id,
     response: parseResult({json, resource, config,
       resourceType: determineResourceType({controller})
     })
@@ -203,7 +204,7 @@ const parseResult = ({json, resource, config, resourceType}) => {
 
 const handleAction = ({action, config, fetchData, next, resource, resourceConfig}) => {
   const promise = new Promise((resolve, reject) => {
-    const data = { resolve, reject, ...fetchData} 
+    const data = { resolve, reject, ...fetchData }
 
     if (config.disableFetchQueueing || resourceConfig.disableFetchQueueing) {
       // Fetch queueing disabled, let the fetch run immediately
