@@ -12,8 +12,7 @@
   "license": "MIT",
   "dependencies": {
     "babel-core": "^6.21.0",
-    "redux": "^3.6.0",
-    "redux-thunk": "^2.2.0"
+    "redux": "^3.6.0"
   },
   "devDependencies": {
     "babel-loader": "^6.2.10",
