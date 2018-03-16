@@ -5,7 +5,6 @@ import {
   getResourceIdAttribute,
   getUniqueClientId,
   isBool,
-  isPromise
  } from './utilities'
 
  let fetchQueue = {}
