@@ -120,14 +120,14 @@ const reduxRailsConfig = combineConfigs(
 // redux store
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 const siteApp = window.siteApp = createStore(
-    combineReducers({
+  combineReducers({
     counter: counterReducer,
     models: apiReducer(apiConfig),
     resources: apiReducer(resourcesConfig)
   }),
   {},
   composeEnhancers(
-    applyMiddleware(middleWare(reduxRailsConfig))
+    applyMiddleware(middleWare(reduxRailsConfig)),
   )
 );
 
@@ -162,6 +162,12 @@ window.setTimeout(() => {
   }))
 
   siteApp.dispatch(railsActions.index({resource: 'Photos'}))
+    .then(resp => { 
+      console.log('async photos: ', resp) 
+    })
+    .catch(err => {
+      console.log('error' , err)
+    })
 
   // siteApp.dispatch({
   //   type: 'User.SHOW'
@@ -191,6 +197,13 @@ window.setTimeout(() => {
   })
 
   window.setTimeout(() => {
+    siteApp.dispatch({
+      type: 'User.UPDATE',
+      data: {
+        description: 'A pretty ok human living on Earth.'
+      }
+    })
+
     siteApp.dispatch({
       type: 'User.UPDATE',
       data: {

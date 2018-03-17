@@ -138,6 +138,7 @@ nock('http://localhost:3000')
 
 describe('middleWare', () => {
   const waitForAppStateUpdate = () => {
+
     return new Promise((resolve, reject) => {
       setTimeout(() => {
         resolve(siteApp.getState())
@@ -435,7 +436,7 @@ describe('middleWare', () => {
       data: { id: 123 }
     }
 
-    siteApp.dispatch(action)
+    siteApp.dispatch(action).catch(err => { /*do nothing*/ })
 
     expect(siteApp.getState()).toEqual({
       Posts: {
@@ -483,7 +484,7 @@ describe('middleWare', () => {
       data: { id: 667 }
     }
 
-    siteApp.dispatch(action)
+    siteApp.dispatch(action).catch(err => { /*do nothing*/ })
 
     expect(siteApp.getState()).toEqual({
       Posts: {

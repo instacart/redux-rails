@@ -7,6 +7,7 @@ Redux Rails is a Redux middleware for auto-generating the actions, reducers and 
 ## Features
 - Simple, pre-defined Redux actions
 - Automated loading state, including loading errors
+- Promise based actions without additional thunk middleware
 - Optionally disabled, optimistic updates
 - Optional response parsing
 - Sane defaults, highly customizable
@@ -72,6 +73,12 @@ App.dispatch(railsActions.show({resource: 'User'}))
 
 App.getState().resources.Posts.models.map(m => console.log(m))
 console.log(App.getState().resources.User)
+
+// OR - use the returned promise to wait for call to server to complete
+App.dispatch(railsActions.show({resource: 'User'}))
+  .then(repsonse => {
+    console.log(response)
+  })
 
 ```
 

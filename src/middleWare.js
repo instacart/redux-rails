@@ -4,7 +4,7 @@ import {
   getConfig,
   getResourceIdAttribute,
   getUniqueClientId,
-  isBool
+  isBool,
  } from './utilities'
 
  let fetchQueue = {}
@@ -87,22 +87,29 @@ const dequeueFetch = ({resource}) => {
   }
 }
 
-const dispatchFetchError = ({store, resource, railsAction, error, id, cId, optimisticUpdateEnabled}) => {
+const dispatchFetchError = ({store, resource, railsAction, error, id, cId, optimisticUpdateEnabled, reject}) => {
   const type = `${resource}.${railsAction}_ERROR`
-  store.dispatch({ type, error, id, cId })
+  const payload = { type, error, id, cId }
+  store.dispatch(payload)
 
   if (['CREATE', 'UPDATE'].includes(railsAction) && optimisticUpdateEnabled) {
     store.dispatch({ type: `${resource}.UNSET_OPTIMISTIC_DATA`, id, cId })
   }
+
+  reject(payload)
 }
 
-const dispatchFetchSuccess = ({store, resource, railsAction, id, cId, json, config, controller}) => {
+const dispatchFetchSuccess = ({store, resource, railsAction, id, cId, json, config, controller, resolve}) => {
   const type = `${resource}.${railsAction}_SUCCESS`
-  store.dispatch({type, cId, id,
+  const payload = {
+    type, cId, id,
     response: parseResult({json, resource, config,
       resourceType: determineResourceType({controller})
     })
-  })
+  }
+
+  store.dispatch(payload)
+  resolve(payload)
 }
 
 const enqueueFetch = (resource, fetchData) => {
@@ -118,7 +125,7 @@ const enqueueFetch = (resource, fetchData) => {
   }
 }
 
-const fetchResource = ({store, resource, config, data={}, railsAction, controllerOverride, fetchParamsOverride, queryParamsOverride}) => {
+const fetchResource = ({store, resource, config, data={}, railsAction, controllerOverride, fetchParamsOverride, queryParamsOverride, resolve, reject}) => {
   const resourceConfig = config.resources[resource]
   const baseUrl = resourceConfig.baseUrl || config.baseUrl
   const controller = controllerOverride || resourceConfig.controller
@@ -148,20 +155,20 @@ const fetchResource = ({store, resource, config, data={}, railsAction, controlle
           const id = (json && json[idAttribute]) || data.id
 
           if(!response.ok) {
-            return dispatchFetchError({store, resource, railsAction, id, cId, optimisticUpdateEnabled,
+            return dispatchFetchError({store, resource, railsAction, id, cId, optimisticUpdateEnabled, reject,
               error: json.error || { message: response.statusText }
             })
           }
 
-          dispatchFetchSuccess({store, resource, railsAction, id, cId, json, config, controller, optimisticUpdateEnabled})
+          dispatchFetchSuccess({store, resource, railsAction, id, cId, json, config, controller, optimisticUpdateEnabled, resolve})
         })
         .catch((error) => {
           const outError = error && error.toString && error.toString()
-          dispatchFetchError({store, resource, railsAction, error: outError, id: data.id, cId, optimisticUpdateEnabled})
+          dispatchFetchError({store, resource, railsAction, error: outError, id: data.id, cId, optimisticUpdateEnabled, reject})
         })
     })
     .catch((error) => {
-      dispatchFetchError({store, resource, railsAction, error, id: data.id, cId, optimisticUpdateEnabled})
+      dispatchFetchError({store, resource, railsAction, error, id: data.id, cId, optimisticUpdateEnabled, reject})
     })
     .then(() => dequeueFetch({resource}))
 }
@@ -195,6 +202,22 @@ const parseResult = ({json, resource, config, resourceType}) => {
   }
 }
 
+const handleAction = ({action, config, fetchData, next, resource, resourceConfig}) => {
+  const promise = new Promise((resolve, reject) => {
+    const data = { resolve, reject, ...fetchData }
+
+    if (config.disableFetchQueueing || resourceConfig.disableFetchQueueing) {
+      // Fetch queueing disabled, let the fetch run immediately
+      fetchResource(data)
+    }
+    
+    enqueueFetch(resource, data)
+  })
+
+  next(action)
+  return promise
+}
+
 export default (inConfig) => {
   return (store) => (next) => {
     return (action) => {
@@ -214,17 +237,10 @@ export default (inConfig) => {
       }
       const resourceConfig = config.resources[resource]
 
-      if (resourceConfig && actionMethodMap[railsAction]) {
+      // action does not have fetching side effects
+      if (!resourceConfig || !actionMethodMap[railsAction]) { return next(action) }
 
-        if (config.disableFetchQueueing || resourceConfig.disableFetchQueueing) {
-          // Fetch queueing disabled, let the fetch run immediately
-          fetchResource(fetchData)
-        } else {
-          enqueueFetch(resource, fetchData)
-        }
-      }
-
-      return next(action)
+      return handleAction({action, config, fetchData, next, resource, resourceConfig})
     }
   }
 }

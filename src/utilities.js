@@ -1,6 +1,6 @@
 let uniqueClientId = 0
 
-export function determinOptimisticUpdateSetting({resourceConfig, config, defaultConfig={}}) {
+export const determinOptimisticUpdateSetting = ({resourceConfig, config, defaultConfig={}}) => {
   if (isBool(resourceConfig.optimisticUpdateEnabled)) { return resourceConfig.optimisticUpdateEnabled }
   if (isBool(config.resources.optimisticUpdateEnabled)) { return config.resources.optimisticUpdateEnabled }
   if (isBool(config.optimisticUpdateEnabled)) { return config.optimisticUpdateEnabled }
@@ -9,7 +9,7 @@ export function determinOptimisticUpdateSetting({resourceConfig, config, default
   return true
 }
 
-export function determineResourceType({controller}) {
+export const determineResourceType = ({controller}) => {
   // resource type is determined by wether or not the controller name is plural
   // this may be overly simplistic
   // example: 'bus' is a memeber, but would return collection here
@@ -20,7 +20,7 @@ export function determineResourceType({controller}) {
   return 'member'
 }
 
-export function getResourceNameSpace({config, resource}) {
+export const getResourceNameSpace = ({config, resource}) => {
   // returns either 'models' or 'attributes' based on resource type
   const controller = config.resources[resource].controller
   const resourceType = determineResourceType({controller})
@@ -28,17 +28,17 @@ export function getResourceNameSpace({config, resource}) {
   return (resourceType === 'collection') ? 'models' : 'attributes'
 }
 
-export function getResourceIdAttribute({config, resource}) {
+export const getResourceIdAttribute = ({config, resource}) => {
   return config.resources[resource].idAttribute || 'id'
 }
 
-export function getUniqueClientId() {
+export const getUniqueClientId = () => {
   return ++uniqueClientId
 }
 
-export function isBool(val) { return typeof val === 'boolean' }
+export const isBool = (val) => { return typeof val === 'boolean' }
 
-export function getConfig({config, store}) {
+export const getConfig = ({config, store}) => {
   if (typeof config === 'function') {
     return config(store)
   }

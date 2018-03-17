@@ -1,14 +1,12 @@
-export function index({resource, controller, queryParams}) {
+export const index = ({resource, controller, queryParams}) => {
   return {
     type: `${resource}.INDEX`,
-    data: {
-      queryParams
-    },
+    data: { queryParams },
     controller
   }
 }
 
-export function show({id, resource, controller, queryParams}) {
+export const show = ({id, resource, controller, queryParams}) => {
   return {
     type: `${resource}.SHOW`,
     data: { id, queryParams },
@@ -16,15 +14,15 @@ export function show({id, resource, controller, queryParams}) {
   }
 }
 
-export function update({id, attributes, resource, controller}) {
+export const update = ({id, attributes, resource, controller}) => {
   return {
     type: `${resource}.UPDATE`,
-    data: Object.assign({}, { id }, attributes),
+    data: { id, ...attributes },
     controller
   }
 }
 
-export function create({resource, attributes, controller}) {
+export const create = ({resource, attributes, controller}) => {
   return {
     type: `${resource}.CREATE`,
     data: attributes,
@@ -32,7 +30,7 @@ export function create({resource, attributes, controller}) {
   }
 }
 
-export function destroy({id, resource, controller}) {
+export const destroy = ({id, resource, controller}) => {
   return {
     type: `${resource}.DESTROY`,
     data: { id },
