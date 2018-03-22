@@ -90,10 +90,11 @@ const dequeueFetch = ({resource}) => {
 const dispatchFetchError = ({store, resource, railsAction, error, id, cId, optimisticUpdateEnabled, reject}) => {
   const type = `${resource}.${railsAction}_ERROR`
   const payload = { type, error, id, cId }
+  const destroy = railsAction === 'CREATE'
   store.dispatch(payload)
 
   if (['CREATE', 'UPDATE'].includes(railsAction) && optimisticUpdateEnabled) {
-    store.dispatch({ type: `${resource}.UNSET_OPTIMISTIC_DATA`, id, cId })
+    store.dispatch({ type: `${resource}.UNSET_OPTIMISTIC_DATA`, id, cId, destroy })
   }
 
   reject(payload)
