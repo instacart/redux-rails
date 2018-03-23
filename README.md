@@ -450,7 +450,7 @@ import { connect } from 'react-redux'
 import { railsActions } from 'redux-rails'
 
 class MyReactComponent extends Component {
-  static propTypes: {
+  static propTypes = {
     fetchPosts: PropTypes.func,
     loading: PropTypes.bool,
     posts: PropTypes.array
