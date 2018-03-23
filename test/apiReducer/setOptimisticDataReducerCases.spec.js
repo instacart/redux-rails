@@ -387,4 +387,84 @@ describe('SET_OPTIMISTIC_DATA', () => {
       }
     )
   })
+
+  it ('should remove temporary member from collection on failed create', () => {
+    const tempCreatereducer = apiReducer(standardConfig)
+    let reducerState = {
+      Posts: {
+        loading: false,
+        loadingError: undefined,
+        models: [{
+          cId: 44,
+          loading: true,
+          loadingError: undefined,
+          attributes: {}
+        }]
+      },
+      User: {
+        loading: true,
+        loadingError: undefined,
+        attributes: {}
+      }
+    }
+
+    reducerState = reducer(reducerState, {
+      type: 'Posts.UNSET_OPTIMISTIC_DATA',
+      cId: 44,
+      destroy: true
+    })
+
+    expect(reducerState).toEqual({
+      Posts: {
+        loading: false,
+        loadingError: undefined,
+        models: []
+      },
+      User: {
+        loading: true,
+        loadingError: undefined,
+        attributes: {}
+      }
+    })
+  })
+
+  it ('should remove temporary singular model on failed create', () => {
+    const tempCreatereducer = apiReducer(standardConfig)
+    let reducerState = {
+      Posts: {
+        loading: false,
+        loadingError: undefined,
+        models: [{
+          cId: 44,
+          loading: true,
+          loadingError: undefined,
+          attributes: {}
+        }]
+      },
+      User: {
+        loading: true,
+        loadingError: undefined,
+        attributes: {}
+      }
+    }
+
+    reducerState = reducer(reducerState, {
+      type: 'User.UNSET_OPTIMISTIC_DATA',
+      destroy: true
+    })
+
+    expect(reducerState).toEqual({
+      Posts: {
+        loading: false,
+        loadingError: undefined,
+        models: [{
+          cId: 44,
+          loading: true,
+          loadingError: undefined,
+          attributes: {}
+        }]
+      },
+      User: null
+    })
+  })
 })
