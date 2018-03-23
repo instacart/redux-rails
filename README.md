@@ -444,20 +444,21 @@ While an optimistic update is in-flight, previous data is stored in `__prevData`
 First, set up your Redux Rails config, set up your apiReducer and apply the Redux Rails middleware
 
 ```js
-import { bindActionCreators } from 'redux'
+import React, { Component } from 'react'
+import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 import { railsActions } from 'redux-rails'
 
-const MyReactComponent = React.createClass({
-  propTypes: {
-    fetchPosts: React.PropTypes.func,
-    loading: React.PropTypes.bool,
-    posts: React.PropTypes.array
-  },
+class MyReactComponent extends Component {
+  static propTypes: {
+    fetchPosts: PropTypes.func,
+    loading: PropTypes.bool,
+    posts: PropTypes.array
+  }
 
   componentWillMount() {
     this.props.fetchPosts()
-  },
+  }
 
   render() {
     if (this.props.loading) { return <p>Loading Posts...</p> }
@@ -476,19 +477,15 @@ const MyReactComponent = React.createClass({
       </ul>
     )
   }
-})
-
-const mapStateToProps = (state) => {
-  return {
-    posts: state.resources.Posts.models,
-    loading: state.resources.Posts.loading
-  }
 }
 
-const mapDispatchToProps = (dispatch) => {
-  return {
-    fetchPosts: bindActionCreators(() => { railsActions.index({ resource: 'Posts'}) }, dispatch)
-  }
+const mapStateToProps = (state) => ({
+  posts: state.resources.Posts.models,
+  loading: state.resources.Posts.loading
+})
+
+const mapDispatchToProps = {
+  fetchPosts: () => { railsActions.index({ resource: 'Posts'}) }
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(MyReactComponent)
