@@ -102,12 +102,10 @@ const dispatchFetchError = ({store, resource, railsAction, error, id, cId, optim
 
 const dispatchFetchSuccess = ({store, resource, railsAction, id, cId, json, config, controller, resolve}) => {
   const type = `${resource}.${railsAction}_SUCCESS`
-  const payload = {
-    type, cId, id,
-    response: parseResult({json, resource, config,
-      resourceType: determineResourceType({controller})
-    })
-  }
+  const { response, metaData } = parseResult({json, resource, config,
+    resourceType: determineResourceType({controller})
+  })
+  const payload = { cId, id, metaData, response, type }
 
   store.dispatch(payload)
   resolve(payload)
@@ -184,23 +182,52 @@ const getResourceQueue = ({resource}) => {
 
 const parseResult = ({json, resource, config, resourceType}) => {
   const resourceParse = config.resources[resource].parse
+  const resourceMeta = config.resources[resource].setMetaData
+  let response = json
+  let metaData = {}
 
-  // parse methods can be defined per resousrce type or
+  // parse and metaData methods can be defined per resousrce type or
   // as a catchall for all resource types
   switch(typeof resourceParse) {
     case 'object': {
       const parseMethod = resourceParse && resourceParse[resourceType]
-      if (!parseMethod) { return json }
+      if (!parseMethod) { 
+        response = json
+        break
+      }
 
-      return parseMethod(json)
+      response = parseMethod(json)
+      break
     }
     case 'function': {
-      return resourceParse(json)
+      response = resourceParse(json)
+      break
     }
     default: {
-      return json
+      response = json
+      break
     }
   }
+
+  switch(typeof resourceMeta) {
+    case 'object': {
+      const setMetaData = resourceMeta && resourceMeta[resourceType]
+      if (!setMetaData) { break }
+
+      metaData = setMetaData(json)
+      break
+    }
+    case 'function': {
+      metaData = resourceMeta(json)
+      break
+    }
+    default: {
+      metaData = {}
+      break
+    }
+  }
+
+  return { response, metaData }
 }
 
 const handleAction = ({action, config, fetchData, next, resource, resourceConfig}) => {

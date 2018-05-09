@@ -7,7 +7,8 @@ import {
   configWithBadCollectionParse,
   configWithOptimisticUpdateDisableOnOneResource,
   configWithOptimisticUpdateDisableOnSingularResource,
-  configWithOptimisticUpdateDisableOnTopLevel
+  configWithOptimisticUpdateDisableOnTopLevel,
+  configWithMetaDataSetting,
 } from './apiReducer/exampleConfigs'
 import nock from 'nock'
 require('es6-promise').polyfill();
@@ -65,6 +66,48 @@ nock('http://localhost:3000')
     {id: 44, text: 'Is that all you really have to say after what you\'ve done?'},
     {id: 45, text: '...I just met you, like, three minutes ago.'}
   ]);
+
+// Index with meta data
+nock('http://localhost:3000')
+  .get('/cats')
+  .reply(200, {
+    cats: [
+      {id: 42, name: 'Pancake'},
+      {id: 43, name: 'Maple'},
+      {id: 44, name: 'Papaya'},
+      {id: 45, name: 'Mufasa'}
+    ],
+    meta: {
+      pagination: {
+        page: 1,
+        total: 15,
+        per: 4
+      }
+    }
+  }
+);
+
+nock('http://localhost:3000')
+  .persist()
+  .get('/cats')
+  .query({ page: '2' })
+  .reply(200, {
+    cats: [
+      {id: 45, name: 'MufasaTWO'},
+      {id: 46, name: 'Trinity'},
+      {id: 47, name: 'Norbu'},
+      {id: 48, name: 'Pippin'},
+      {id: 49, name: 'Ripa'},
+    ],
+    meta: {
+      pagination: {
+        page: 2,
+        total: 15,
+        per: 4
+      }
+    }
+  }
+);
 
 // Show
 nock('http://localhost:3000')
@@ -650,6 +693,110 @@ describe('middleWare', () => {
           }
         })
       })
+  })
+
+  it('should update the metaData on a collection correctly', () => {
+    const reduxRailsWithMetaDataSetting = middleWare(configWithMetaDataSetting)
+    const metaDataReducer = apiReducer(configWithMetaDataSetting)
+
+    const metaDataStore = createStore(
+      apiReducer(configWithMetaDataSetting),
+      {},
+      compose(applyMiddleware(reduxRailsWithMetaDataSetting))
+    )
+
+    const waitForAppUpdate = () => {
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          resolve(metaDataStore.getState())
+        }, 10)
+      })
+    }
+
+    expect(metaDataStore.getState()).toEqual({
+      Cats: {
+        loading: false,
+        loadingError: undefined,
+        models: []
+      }
+    })
+
+    metaDataStore.dispatch({ type: 'Cats.INDEX' })
+
+    expect(metaDataStore.getState()).toEqual({
+      Cats: {
+        loading: true,
+        loadingError: undefined,
+        models: []
+      }
+    })
+
+    return waitForAppUpdate()
+      .then((appState) => {
+        expect(appState).toEqual({
+          Cats: {
+            loading: false,
+            loadingError: undefined,
+            models: [
+              { loading: false, attributes: {id: 42, name: 'Pancake'}, id: 42 },
+              { loading: false, attributes: {id: 43, name: 'Maple'}, id: 43 },
+              { loading: false, attributes: {id: 44, name: 'Papaya'}, id: 44 },
+              { loading: false, attributes: {id: 45, name: 'Mufasa'},id: 45 }
+            ],
+            pagination: {
+              page: 1,
+              total: 15,
+              per: 4
+            }
+          }
+        })
+
+        metaDataStore.dispatch({ type: 'Cats.INDEX', queryParams: { page: 2 } })
+
+        expect(metaDataStore.getState()).toEqual({
+          Cats: {
+            loading: true,
+            loadingError: undefined,
+            models: [
+              { loading: false, attributes: {id: 42, name: 'Pancake'}, id: 42 },
+              { loading: false, attributes: {id: 43, name: 'Maple'}, id: 43 },
+              { loading: false, attributes: {id: 44, name: 'Papaya'}, id: 44 },
+              { loading: false, attributes: {id: 45, name: 'Mufasa'},id: 45 }
+            ],
+            pagination: {
+              page: 1,
+              total: 15,
+              per: 4
+            }
+          }
+        })
+
+        waitForAppUpdate()
+          .then((appState2) => {
+            expect(appState2).toEqual({
+              Cats: {
+                loading: false,
+                loadingError: undefined,
+                models: [
+                  { loading: false, attributes: {id: 42, name: 'Pancake'}, id: 42 },
+                  { loading: false, attributes: {id: 43, name: 'Maple'}, id: 43 },
+                  { loading: false, attributes: {id: 44, name: 'Papaya'}, id: 44 },
+                  { loading: false, attributes: {id: 45, name: 'MufasaTWO'}, id: 45 },
+                  { loading: false, attributes: {id: 46, name: 'Trinity'}, id: 46 },
+                  { loading: false, attributes: {id: 47, name: 'Norbu'}, id: 47 },
+                  { loading: false, attributes: {id: 48, name: 'Pippin'}, id: 48 },
+                  { loading: false, attributes: {id: 49, name: 'Ripa'}, id: 49 },
+                ],
+                pagination: {
+                  page: 2,
+                  total: 15,
+                  per: 4
+                }
+              }
+            })
+          })
+        })
+
   })
 
   it('call with bad array response shoud set error state', () => {
