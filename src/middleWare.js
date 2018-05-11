@@ -182,8 +182,8 @@ const getResourceQueue = ({resource}) => {
 
 const parseResult = ({json, resource, config, resourceType}) => {
   const resourceParse = config.resources[resource].parse
-  const resourceMeta = config.resources[resource].setMetaData
-  let response = json
+  const resourceMeta = config.resources[resource].setMetadata
+  let response
   let metaData = {}
 
   // parse and metaData methods can be defined per resousrce type or
@@ -211,10 +211,10 @@ const parseResult = ({json, resource, config, resourceType}) => {
 
   switch(typeof resourceMeta) {
     case 'object': {
-      const setMetaData = resourceMeta && resourceMeta[resourceType]
-      if (!setMetaData) { break }
+      const setMetadata = resourceMeta && resourceMeta[resourceType]
+      if (!setMetadata) { break }
 
-      metaData = setMetaData(json)
+      metaData = setMetadata(json)
       break
     }
     case 'function': {

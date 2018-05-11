@@ -76,8 +76,9 @@ export default (inConfig) => {
           if (resourceConfig.paginated) {
             // merge new models into existing models
             // prefer response's model data over existing model data
+            const newResponseIds = response.reduce((memo, r) => ({ ...memo, [r.id]: true }), {})
             response = [
-              ...state.models.map(m => m.attributes).filter(m => !response.find(rm => rm.id === m.id)),
+              ...state.models.map(m => m.attributes).filter(m => !newResponseIds[m.id]),
               ...response
             ]
           }

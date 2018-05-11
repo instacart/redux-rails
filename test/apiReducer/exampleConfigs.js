@@ -118,7 +118,7 @@ export const configWithMetaDataSetting = {
       controller: 'cats',
       paginated: true,
       parse: resp => resp.cats,
-      setMetaData: (resp) => {
+      setMetadata: (resp) => {
         const { pagination } = resp.meta
         return { pagination }
       }
