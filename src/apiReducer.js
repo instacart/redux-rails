@@ -26,25 +26,30 @@ export default (inConfig) => {
   const reducers = {}
 
   Object.keys(config.resources).forEach((resource) => {
-    reducers[resource] = (state = getInitialState({config, resource}), action) => {
+    reducers[resource] = (state = getInitialState({config, resource}), action = {}) => {
+      const resourceConfig = config.resources[resource] || {}
       const resourceNameSpace = getResourceNameSpace({config, resource})
       const isSingleModel = resourceNameSpace === 'attributes'
       const idAttribute = getResourceIdAttribute({config, resource})
       const { queryParams } = action.data || {}
+      
       switch(action.type) {
         case `${resource}.INDEX`: {
+          const { paginated } = resourceConfig
+
           return {
             ...state,
             ...createNewCollection({
               metaData: {
                 loading: true,
                 queryParams
-              }
+              },
+              models: paginated ? state.models : []
             })
           }
         }
         case `${resource}.INDEX_SUCCESS`: {
-          let response = action.response
+          let { response, metaData } = action
           const responseResource = action.response[resource] || action.response[resource.toLowerCase()]
 
           if (!Array.isArray(action.response)) {
@@ -68,13 +73,24 @@ export default (inConfig) => {
             }
           }
 
+          if (resourceConfig.paginated) {
+            // merge new models into existing models
+            // prefer response's model data over existing model data
+            const newResponseIds = response.reduce((memo, r) => ({ ...memo, [r.id]: true }), {})
+            response = [
+              ...state.models.map(m => m.attributes).filter(m => !newResponseIds[m.id]),
+              ...response
+            ]
+          }
+
           return {
             ...state,
             ...createNewCollection({
               models: response.map(model => createNewModel({
                 id: model[idAttribute],
                 attributes: model
-              }))
+              })),
+              metaData
             })
           }
         }
@@ -108,11 +124,11 @@ export default (inConfig) => {
           }
         }
         case `${resource}.SHOW_SUCCESS`: {
-          const { id } = action
-          const data = action.response
+          const { id, response, metaData } = action
+          const data = response
 
           if (isSingleModel) {
-            return createNewModel({id,
+            return createNewModel({id, metaData,
               attributes: { ...state.attributes, ...data }
             })
           }
@@ -121,7 +137,7 @@ export default (inConfig) => {
             ...state,
             ...createNewCollection({
               models: setMemberAttributes({id, data, state,
-                metaData: { loading: false }
+                metaData: { loading: false, ...metaData }
               })
             })
           }
@@ -153,17 +169,18 @@ export default (inConfig) => {
           })
         }
         case `${resource}.CREATE_SUCCESS`: {
-          const data = action.response
-          const { cId, id } = action
+          const { cId, id, response, metaData } = action
+          const data = response
 
           if (isSingleModel) {
             return createNewModel({id, cId,
-              attributes: { ...state.attributes, ...data }
+              attributes: { ...state.attributes, ...data },
+              metaData
             })
           }
 
           return createNewCollection({
-            models: setMemberAttributes({data, state, id, cId})
+            models: setMemberAttributes({data, state, id, cId, metaData})
           })
         }
         case `${resource}.CREATE_ERROR`: {
@@ -198,18 +215,19 @@ export default (inConfig) => {
           }
         }
         case `${resource}.UPDATE_SUCCESS`: {
-          const { id } = action
-          const data = action.response
+          const { id, metaData, response } = action
+          const data = response
 
           if (isSingleModel) {
             return createNewModel({id,
-              attributes: { ...state.attributes, ...data }
+              attributes: { ...state.attributes, ...data },
+              metaData
             })
           }
 
           return {
             ...state,
-            ...{ models: setMemberAttributes({id, data, state, replaceAttributes: false}) }
+            ...{ models: setMemberAttributes({id, data, metaData, state, replaceAttributes: false}) }
           }
         }
         case `${resource}.UPDATE_ERROR`: {

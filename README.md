@@ -15,7 +15,6 @@ Redux Rails is a Redux middleware for auto-generating the actions, reducers and 
 - And more!
 
 ## How is it done?
-> ###tldr
 > 1. Create your config
 > 2. Create your Redux store
 > 3. Use provided actions to talk with your backend api
@@ -434,6 +433,8 @@ Models and collections each get a few pieces of metadata. Some are optional and 
 - **cId (optional)** - used for internal purposes only.
 - **queryParams** - the query params for the current corresponding model or collection.
 
+You can also add your own arbitray metadata to collections. This is useful for things like paginating a collection. See the `setMetadata` config setting for more info.
+
 ## Optimistic Updates
 Update and Create actions assume immediate success on the client, by default. If the server returns an error, this data is automatically reverted on the client for you. A loading error will be set on the model. This option can be disabled per config or per resource with the `optimisticUpdateEnabled` attribute.
 
@@ -510,6 +511,10 @@ const apiConfig = {
             response: resp.posts
           }
         }
+      },
+      setMetadata: (resp) => {
+        const { pagination } = resp
+        return { pagination }
       },
       idAttribute: '_id',
       baseUrl: 'https://your-OTHER-site-url.com/api/',
@@ -635,20 +640,74 @@ App.dispatch(railsActions.index({resource: 'Posts'}))
 
 // if the response returns an array, this array will be used directly in the redux store, as expected.
 // response: [ {}, {}, {} ]
-App.getState().resources.Posts // { loading: false, models: [ {}, {}, {} ] }
+App.getState().resources.Posts // => { loading: false, models: [ {}, {}, {} ] }
 
 // if the response returns an object with an array under a key matching the resource name, that will be used
 // response: { Posts: [ {}, {}, {} ] }
-App.getState().resources.Posts // { loading: false, models: [ {}, {}, {} ] }
+App.getState().resources.Posts // => { loading: false, models: [ {}, {}, {} ] }
 
 // the resource name is not case sensitive here, so you can name your resource `Posts` but still use the key `posts`
 // response: { posts: [ {}, {}, {} ] }
 
-App.getState().resources.Posts // { loading: false, models: [ {}, {}, {} ] }
+App.getState().resources.Posts // => { loading: false, models: [ {}, {}, {} ] }
 
 // if it does not find an array in any of these cases, it will set an error
 // response: { posts: {...} }
-App.getState().resources.Posts // { loading: false, loadingError: 'Bad data received from server. INDEX calls expect an array.', models: [] }
+App.getState().resources.Posts // => { loading: false, loadingError: 'Bad data received from server. INDEX calls expect an array.', models: [] }
+```
+### setMetadata (optional)
+The setMetadata option is a function which receives your raw JSON response as an argument, and should return an object. That object will be set at the top level of your model or collection along with the other metadata, such as loading state. This is great for things like pagination data.
+
+Example of a setMetadata function
+```js
+const apiConfig = {
+  baseUrl: 'https://your-site-url.com/api/',
+  resources: {
+    Posts: {
+      controller: 'posts',
+      paginated: true,
+      setMetadata: (resp) => {
+        const { pagination } = resp.meta
+        return { pagination }
+      }
+    }
+  }
+}
+```
+
+This will put the data on the resp.meta.pagination object into the `posts` collection's metadata.
+
+Later...
+```js
+App.dispatch(railsActions.index({resource: 'Posts'})).then(() => {
+  App.getState().resources.Posts // => { loading: false, models: [ {}, {}, {} ], pagination: { ... } }
+})
+```
+
+### paginated
+By default, redux rails will empty out a collection when an `INDEX` action is used on a resource. The `paginated` option tells Redux Rails to persist the models in a collection between calls. New models are simply added to the collection, and any duplicate models will be overwritten by the new model (de-duped by `id`).
+
+Example of paginated use
+```js
+const apiConfig = {
+  baseUrl: 'https://your-site-url.com/api/',
+  resources: {
+    Posts: {
+      controller: 'posts',
+      paginated: true,
+      setMetadata: (resp) => {
+        const { pagination } = resp.meta
+        return { pagination }
+      }
+    }
+  }
+}
+
+App.getState().resources.Posts // => { loading: false, models: [ { id: 1, attriubtes: {} }  } ] }
+
+App.dispatch(railsActions.index({resource: 'Posts', queryParam: { page: 2 } })).then(() => {
+  App.getState().resources.Posts // => { loading: false, models: [ { id: 1, attriubtes: {} }, { id: 2, attriubtes: {}  }, { id: 3, attriubtes: {}  } ], pagination: { ... } }
+})
 ```
 
 ### idAttribute (optional - default: id)

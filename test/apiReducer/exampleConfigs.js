@@ -111,6 +111,21 @@ export const configWithCustomReducer = {
   }
 }
 
+export const configWithMetaDataSetting = {
+  baseUrl: 'http://localhost:3000/',
+  resources: {
+    Cats: {
+      controller: 'cats',
+      paginated: true,
+      parse: resp => resp.cats,
+      setMetadata: (resp) => {
+        const { pagination } = resp.meta
+        return { pagination }
+      }
+    }
+  }
+}
+
 export const configWithOptimisticUpdateDisableOnOneResource = {
   baseUrl: 'http://localhost:3000/',
   resources: {
