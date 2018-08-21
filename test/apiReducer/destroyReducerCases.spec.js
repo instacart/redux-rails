@@ -1,4 +1,5 @@
-import { apiReducer, railsActions } from 'redux-rails'
+import apiReducer from '../../src/apiReducer'
+import railsActions from '../../src/railsActions'
 
 describe('DESTROY actions', () => {
   const destroyConfig = {

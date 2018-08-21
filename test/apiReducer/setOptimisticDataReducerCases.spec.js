@@ -1,4 +1,4 @@
-import { apiReducer, railsActions } from 'redux-rails'
+import apiReducer from '../../src/apiReducer'
 import { standardConfig } from './exampleConfigs'
 
 describe('SET_OPTIMISTIC_DATA', () => {

@@ -1,4 +1,4 @@
-import { apiReducer } from 'redux-rails'
+import apiReducer from '../../src/apiReducer'
 import { standardConfig, configWithModelsReady } from './exampleConfigs'
 
 describe('LOADING action', () => {

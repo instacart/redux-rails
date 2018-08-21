@@ -1,4 +1,4 @@
-import { apiReducer, railsActions } from 'redux-rails'
+import apiReducer from '../../src/apiReducer'
 import { standardConfig } from './exampleConfigs'
 import { getUniqueClientId } from '../../src/utilities'
 

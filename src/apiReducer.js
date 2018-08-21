@@ -4,8 +4,6 @@ import {
   findModel,
   createNewModel,
   createNewCollection,
-  collectionWithNewModel,
-  collectionWithUpdatedModel,
   setMemberAttributes,
   destroyMember,
   destroyTempMemeber,
@@ -17,7 +15,6 @@ import {
   getConfig,
   getResourceNameSpace,
   getResourceIdAttribute,
-  getUniqueClientId
 } from './utilities'
 
 // main reducer
