@@ -1,4 +1,5 @@
-import { apiReducer, railsActions } from 'redux-rails'
+import apiReducer from '../../src/apiReducer'
+import railsActions from '../../src/railsActions'
 import { standardConfig } from './exampleConfigs'
 
 describe('SHOW actions', () => {

@@ -4,7 +4,6 @@ import {
   getConfig,
   getResourceIdAttribute,
   getUniqueClientId,
-  isBool,
  } from './utilities'
 
  let fetchQueue = {}

@@ -1,5 +1,5 @@
 import { standardConfig, standardFuncConfig, configWithCustomReducer, configWithModelsReady } from './exampleConfigs'
-import { apiReducer, railsActions } from 'redux-rails'
+import apiReducer from '../../src/apiReducer'
 
 describe('apiReducer', () => {
 

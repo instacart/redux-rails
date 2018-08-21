@@ -25,7 +25,7 @@ module.exports = {
   resolve: {
     alias: {
       "redux-rails": path.resolve(
-        path.join(__dirname, "..", "src")
+        path.join(__dirname, "..", "src", "index.js")
       )
     },
     extensions: ["", ".js", ".jsx"]

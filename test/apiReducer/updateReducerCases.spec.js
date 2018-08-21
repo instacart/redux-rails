@@ -1,5 +1,6 @@
-import { apiReducer, railsActions } from 'redux-rails'
-import { standardConfig, configWithModelsReady } from './exampleConfigs'
+import apiReducer from '../../src/apiReducer'
+import railsActions from '../../src/railsActions'
+import { configWithModelsReady } from './exampleConfigs'
 
 describe('UPDATE actions', () => {
   const updateReducer = apiReducer(configWithModelsReady)

@@ -2,14 +2,16 @@
   "name": "redux-rails",
   "version": "0.0.1",
   "description": "Redux and your server talking without fuss.",
-  "main": "src/index.js",
+  "main": "dist/redux-rails.js",
+  "module": "src/index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/instacart/redux-rails"
   },
   "scripts": {
-    "start": "webpack --progress --watch --config webpack.config.js src/index.js dist/redux-rails.js",
-    "build": "npm test && webpack --progress --config webpack.config.js src/index.js dist/redux-rails.js",
+    "analyze-webpack-bundles": "analyze=true webpack --progress --config webpack.config.js",
+    "start": "webpack --progress --watch --config webpack.config.js",
+    "build": "npm test && webpack --progress --config webpack.config.js",
     "test": "jest --coverage --silent",
     "test:watch": "npm test -- --watch --bail"
   },
@@ -30,8 +32,10 @@
     "isomorphic-fetch": "^2.2.1",
     "jest": "^22.4.2",
     "nock": "^9.0.2",
+    "path": "^0.12.7",
     "redux": ">=3.6.0",
     "webpack": "^4.16.5",
+    "webpack-bundle-analyzer": "^2.13.1",
     "webpack-cli": "^3.1.0"
   },
   "jest": {
