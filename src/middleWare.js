@@ -44,11 +44,14 @@ const constructQueryParams = (queryParams = {}, railsAction) => {
   return `?${queryString}`
 }
 
+const isNestedResource = (controller) => controller.includes('/:id/')
+
 const constructUrl = ({baseUrl, controller, railsAction, data, queryParams = {}}) => {
   const resourceType = determineResourceType({controller})
+  const isNested = isNestedResource(controller)
   const urlTail = () => {
     // all actions on a collection, other than index and create, require an id
-    if (resourceType === 'collection' && railsAction !== 'INDEX' && railsAction !== 'CREATE'){
+    if (isNested || (resourceType === 'collection' && railsAction !== 'INDEX' && railsAction !== 'CREATE')){
       return `/${data.id}`
     }
 
@@ -58,10 +61,10 @@ const constructUrl = ({baseUrl, controller, railsAction, data, queryParams = {}}
   const queryString = constructQueryParams(queryParams, railsAction)
 
   let base
-  if(!controller.includes('/:id/')) {
-    base = `${baseUrl}${controller}${urlTail()}`
-  } else {
+  if(isNested) {
     base = `${baseUrl}${controller}`.replace('/:id', urlTail())
+  } else {
+    base = `${baseUrl}${controller}${urlTail()}`
   }
 
   return `${base}${queryString}`

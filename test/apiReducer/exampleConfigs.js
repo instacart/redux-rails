@@ -129,8 +129,8 @@ export const configWithMetaDataSetting = {
 export const configWithNestedModelAction = {
   baseUrl: 'http://localhost:3000/',
   resources: {
-    DogFriends: {
-      controller: 'dogs/:id/friends'
+    DogFriend: {
+      controller: 'dogs/:id/friend'
     }
   }
 }

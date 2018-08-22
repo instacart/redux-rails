@@ -138,7 +138,7 @@ nock('http://localhost:3000')
   // nested model action
 nock('http://localhost:3000')
   .persist()
-  .get('/dogs/3/friends')
+  .get('/dogs/3/friend')
   .reply(200, {
     importantFriends: {
     firstFriend: 'buddy',
@@ -1185,7 +1185,7 @@ describe('middleWare', () => {
     }
 
     const action = {
-      type: 'DogFriends.SHOW',
+      type: 'DogFriend.SHOW',
       data: { id: 3 }
     }
 
@@ -1207,21 +1207,16 @@ describe('middleWare', () => {
 
     it('initial call should update app state', () => {
       expect(siteAppParse.getState()).toEqual({
-        DogFriends: {
+        DogFriend: {
+          attributes: {
+            importantFriends: {
+              firstFriend: 'buddy',
+              onlyFriend: 'Tooty'
+            },
+          },
+          id: 3,
           loading: false,
           loadingError: undefined,
-          models: [{
-            __prevData: undefined,
-            attributes: {
-              importantFriends: {
-                firstFriend: 'buddy',
-                onlyFriend: 'Tooty'
-              },
-            },
-            id: 3,
-            loading: false,
-            loadingError: undefined
-          }],
           __prevData: undefined
         }
       })
@@ -1230,22 +1225,17 @@ describe('middleWare', () => {
     it('response should update app state', async () => {
       const data = await appStateAfterUpdate();
       expect(data).toEqual({
-        DogFriends: {
-          __prevData: undefined,
+        DogFriend: {
+          attributes: {
+            importantFriends: {
+              firstFriend: 'buddy',
+              onlyFriend: 'Tooty'
+            },
+          },
+          id: 3,
           loading: false,
           loadingError: undefined,
-          models: [{
-            __prevData: undefined,
-            id: 3,
-            loading: false,
-            loadingError: undefined,
-            attributes: {
-              importantFriends: {
-                firstFriend: 'buddy',
-                onlyFriend: 'Tooty'
-              },
-            }}
-          ]
+          __prevData: undefined
         }
       })
     })

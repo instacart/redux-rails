@@ -1,6 +1,6 @@
 import apiReducer from '../../src/apiReducer'
 import railsActions from '../../src/railsActions'
-import { standardConfig } from './exampleConfigs'
+import { standardConfig, configWithNestedModelAction } from './exampleConfigs'
 
 describe('SHOW actions', () => {
   const showReducer = apiReducer(standardConfig)
@@ -513,5 +513,49 @@ describe('SHOW actions', () => {
       )
     })
 
+  })
+  describe('nested actions', () => {
+    const nestedShowReducer = apiReducer(configWithNestedModelAction)
+    let nestedShowReducerState = {}
+
+    nestedShowReducerState = nestedShowReducer(nestedShowReducerState, railsActions.show({
+      resource: 'DogFriend'
+    }))
+
+    it('should initialize state', () => {
+      expect(nestedShowReducerState).toEqual({
+        DogFriend: {
+          loading: true,
+          loadingError: undefined,
+          attributes: {}
+        }
+      })
+    })
+
+    it('should set the attributes on a singular resource after successful SHOW call', () => {
+      const response = {
+        id: 5,
+        importantFriends: {
+          firstFriend: 'buddy',
+          onlyFriend: 'Tooty'
+        }
+      }
+
+      nestedShowReducerState = nestedShowReducer(nestedShowReducerState, {
+        type: 'DogFriend.SHOW_SUCCESS',
+        id: response.id,
+        response
+      })
+
+      expect(nestedShowReducerState).toEqual({
+        DogFriend: {
+          loading: false,
+          loadingError: undefined,
+          __prevData: undefined,
+          attributes: response,
+          id: response.id
+        }
+      })
+    })
   })
 })
