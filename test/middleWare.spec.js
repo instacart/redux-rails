@@ -8,6 +8,7 @@ import {
   configWithOptimisticUpdateDisableOnOneResource,
   configWithOptimisticUpdateDisableOnSingularResource,
   configWithOptimisticUpdateDisableOnTopLevel,
+  configWithNestedModelAction,
   configWithMetaDataSetting,
 } from './apiReducer/exampleConfigs'
 import nock from 'nock'
@@ -15,7 +16,6 @@ require('es6-promise').polyfill();
 require('isomorphic-fetch');
 
 const reduxRailsMiddleware = middleWare(standardConfig)
-const standardReducer = apiReducer(standardConfig)
 
 const siteApp = createStore(
   apiReducer(standardConfig),
@@ -134,6 +134,17 @@ nock('http://localhost:3000')
   .persist()
   .get('/posts/667')
   .reply(200);
+
+  // nested model action
+nock('http://localhost:3000')
+  .persist()
+  .get('/dogs/3/friends')
+  .reply(200, {
+    importantFriends: {
+    firstFriend: 'buddy',
+    onlyFriend: 'Tooty'
+  }
+});
 
 // Create
 nock('http://localhost:3000')
@@ -1154,7 +1165,89 @@ describe('middleWare', () => {
           }
         })
       })
+  })
 
+  describe('nested calls', () => {
+    beforeEach(() => nock.cleanAll())
+    const reduxRailsMiddleware = middleWare(configWithNestedModelAction)
 
+    const siteAppParse = createStore(
+      apiReducer(configWithNestedModelAction),
+      {},
+      compose(applyMiddleware(reduxRailsMiddleware))
+    )
+
+    const dispatchWithStore = (storeData, action) => {
+      let dispatched = null
+      const dispatch = reduxRailsMiddleware(siteAppParse)(actionAttempt => dispatched = actionAttempt)
+      dispatch(action)
+      return dispatched
+    }
+
+    const action = {
+      type: 'DogFriends.SHOW',
+      data: { id: 3 }
+    }
+
+    siteAppParse.dispatch(action)
+    let appState = siteAppParse.getState()
+
+    expect(dispatchWithStore({}, action)).toEqual(action)
+
+    siteAppParse.dispatch(action)
+    appState = siteAppParse.getState()
+
+    const appStateAfterUpdate = () => {
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          resolve(siteAppParse.getState())
+        }, 10)
+      })
+    }
+
+    it('initial call should update app state', () => {
+      expect(siteAppParse.getState()).toEqual({
+        DogFriends: {
+          loading: false,
+          loadingError: undefined,
+          models: [{
+            __prevData: undefined,
+            attributes: {
+              importantFriends: {
+                firstFriend: 'buddy',
+                onlyFriend: 'Tooty'
+              },
+            },
+            id: 3,
+            loading: false,
+            loadingError: undefined
+          }],
+          __prevData: undefined
+        }
+      })
+    })
+
+    it('response should update app state', async () => {
+      const data = await appStateAfterUpdate();
+      expect(data).toEqual({
+        DogFriends: {
+          __prevData: undefined,
+          loading: false,
+          loadingError: undefined,
+          models: [{
+            __prevData: undefined,
+            id: 3,
+            loading: false,
+            loadingError: undefined,
+            attributes: {
+              importantFriends: {
+                firstFriend: 'buddy',
+                onlyFriend: 'Tooty'
+              },
+            }}
+          ]
+        }
+      })
+    })
   })
 })

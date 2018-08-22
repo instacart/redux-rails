@@ -57,7 +57,14 @@ const constructUrl = ({baseUrl, controller, railsAction, data, queryParams = {}}
 
   const queryString = constructQueryParams(queryParams, railsAction)
 
-  return `${baseUrl}${controller}${urlTail()}${queryString}`
+  let base
+  if(!controller.includes('/:id/')) {
+    base = `${baseUrl}${controller}${urlTail()}`
+  } else {
+    base = `${baseUrl}${controller}`.replace('/:id', urlTail())
+  }
+
+  return `${base}${queryString}`
 }
 
 const constructfetchOptions = ({railsAction, resource, config, data, fetchParams={}}) => {
@@ -190,7 +197,7 @@ const parseResult = ({json, resource, config, resourceType}) => {
   switch(typeof resourceParse) {
     case 'object': {
       const parseMethod = resourceParse && resourceParse[resourceType]
-      if (!parseMethod) { 
+      if (!parseMethod) {
         response = json
         break
       }
@@ -237,7 +244,7 @@ const handleAction = ({action, config, fetchData, next, resource, resourceConfig
       // Fetch queueing disabled, let the fetch run immediately
       fetchResource(data)
     }
-    
+
     enqueueFetch(resource, data)
   })
 

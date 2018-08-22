@@ -85,7 +85,7 @@ App.dispatch(railsActions.show({resource: 'User'}))
 
 ### index
 
-Fetch list of members from a resource collection.   
+Fetch list of members from a resource collection.
 ```js
 App.dispatch(railsActions.index({
   resource: 'Posts',
@@ -731,6 +731,20 @@ Example with `idAttribute` set to `_@@id`:
 ### baseUrl (optional)
 Url base for your resource(s). If you'd like a different baseUrl for a specific resource, you can set `baseUrl` on the resource level as well. If you're using multiple configs, each config can have a top-level baseUrl.
 
+### Nested Resources
+For actions with a rails route like `/v3/carts/:id/cart_total` where we need to access a nested action, we can use the wildcard ID matcher `/:id/` to let the middleware know this request is nested and interpolate the id appropriately. Here is an example configuration.
+
+```js
+const ApiConfig = {
+  baseUrl: 'http://www.kibbles.com/',
+  resources: {
+    DogFriends: {
+      controller: 'dogs/:id/friends'
+    }
+  }
+}
+```
+
 ### optimisticUpdateEnabled (optional - default: true)
 Optimistic updates are on by default, but can be disabled per resource or per config using the `optimisticUpdateEnabled` attribute. Disabling optimistic updates will tell Redux Rails to wait for a successful server response before updating or creating models on the client. This can lead to a less responsive feeling app for users, but client state will exactly match the known state of the model on the server.
 
@@ -862,7 +876,7 @@ The first config given to `combineConfigs` is used as the default for top-level 
 
 If you need to determine some data for your config after your redux app has been instantiated, you can pass a function instead of an object as your config parameter. That function must return a valid config object.
 
-The function will be passed the current redux store state during the middleware proccesses. This can be useful if you need redux state in your Redux Rails config. 
+The function will be passed the current redux store state during the middleware proccesses. This can be useful if you need redux state in your Redux Rails config.
 > Note that the redux store will be an empty object on initialization. Your config function must be able to handle this. See example below.
 
 ```js
