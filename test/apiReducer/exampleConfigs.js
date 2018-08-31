@@ -126,6 +126,15 @@ export const configWithMetaDataSetting = {
   }
 }
 
+export const configWithNestedModelAction = {
+  baseUrl: 'http://localhost:3000/',
+  resources: {
+    DogFriend: {
+      controller: 'dogs/:id/friend'
+    }
+  }
+}
+
 export const configWithOptimisticUpdateDisableOnOneResource = {
   baseUrl: 'http://localhost:3000/',
   resources: {
