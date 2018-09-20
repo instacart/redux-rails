@@ -2,7 +2,7 @@ Redux Rails
 =========================
 <strong>Redux and your server talking without fuss.</strong>
 
-[![CircleCI](https://circleci.com/gh/instacart/redux-rails.svg?style=shield&circle-token=dfe00f3d2f89c4b810250f6d18b384df3ab1bc6b)](https://circleci.com/gh/instacart/redux-rails)
+[![npm](https://img.shields.io/npm/v/redux-rails.svg?style=flat-square)](https://www.npmjs.com/package/redux-rails)  [![CircleCI](https://circleci.com/gh/instacart/redux-rails.svg?style=shield&circle-token=dfe00f3d2f89c4b810250f6d18b384df3ab1bc6b)](https://circleci.com/gh/instacart/redux-rails)
 
 Redux Rails is a Redux middleware for auto-generating the actions, reducers and settings for talking to your RESTful backend. It removes boilerplate and keeps your app consistent.
 
