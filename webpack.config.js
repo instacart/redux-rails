@@ -30,6 +30,7 @@ module.exports = {
     filename: 'redux-rails.js',
     library: 'redux-rails',
     libraryTarget: 'umd',
+    globalObject: 'typeof self !== \'undefined\' ? self : this'
   },
   plugins: [
     anaylzerEnabled && new BundleAnalyzerPlugin()
