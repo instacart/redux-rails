@@ -2,15 +2,13 @@ const webpack = require("webpack");
 const path = require('path');
 
 module.exports = {
+  mode: 'development',
   module: {
-   loaders: [
+    rules: [
      {
        test: /\.(js|jsx)$/,
        loader: ["babel-loader"],
        exclude: /node_modules/,
-       query: {
-          presets: ['es2015', 'stage-3', 'react']
-      }
      }
    ]
   },
@@ -18,7 +16,7 @@ module.exports = {
     main: "./index.js"
   },
   output: {
-    path: "dist",
+    path: path.join(__dirname, "dist"),
     filename: "index.js"
   },
   devtool: "cheap-module-eval-source-map",
@@ -28,6 +26,6 @@ module.exports = {
         path.join(__dirname, "..", "src", "index.js")
       )
     },
-    extensions: ["", ".js", ".jsx"]
+    extensions: [".js", ".jsx"]
   }
 }
