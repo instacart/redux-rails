@@ -41,7 +41,7 @@
     "path": "^0.12.7",
     "redux": ">=3.6.0",
     "webpack": "^4.16.5",
-    "webpack-bundle-analyzer": "^2.13.1",
+    "webpack-bundle-analyzer": "^3.3.2",
     "webpack-cli": "^3.1.0"
   },
   "jest": {
