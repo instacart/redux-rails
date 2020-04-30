@@ -1,9 +1,10 @@
 import apiReducer from '../../src/apiReducer'
 import railsActions from '../../src/railsActions'
-import { standardConfig } from './exampleConfigs'
+import { standardConfig, configWithMetaDataSetting } from './exampleConfigs'
 
 describe('INDEX actions', () => {
   const indexReducer = apiReducer(standardConfig)
+  const indexReducerWithPaginate = apiReducer(configWithMetaDataSetting)
   let indexReducerState = {}
   const baseModelState = {
     loading: false,
@@ -21,6 +22,18 @@ describe('INDEX actions', () => {
   const expectedPostsState = (newState) => ({
     ...baseExpectedState,
     Posts: {
+      ...baseCollectionState,
+      ...newState
+    }
+  })
+
+  const baseCatsExpectedState = {
+    Cats: baseCollectionState,
+  }
+
+  const expectedCatsState = (newState) => ({
+    ...baseCatsExpectedState,
+    Cats: {
       ...baseCollectionState,
       ...newState
     }
@@ -129,5 +142,81 @@ describe('INDEX actions', () => {
         {loading: false, loadingError: undefined, id: 10, attributes: {id: 10, foo: 'bar10'}}
       ]
     }))
+  })
+
+  describe('pagination', () => {
+    it('should work correctly when there are no overrides', () => {
+      indexReducerState = indexReducerWithPaginate(indexReducerState, {
+        type: 'Cats.INDEX_SUCCESS',
+        response: {Cats: [{id: 1, foo: 'bar1'}, {id: 2, foo: 'bar2'}, {id: 3, foo: 'bar3'}]}
+      })
+      indexReducerState = indexReducerWithPaginate(indexReducerState, {
+        type: 'Cats.INDEX_SUCCESS',
+        response: {Cats: [{id: 4, foo: 'bar4'}, {id: 5, foo: 'bar5'}, {id: 6, foo: 'bar6'}]}
+      })
+
+      expect(indexReducerState).toEqual(expectedCatsState({
+        models: [
+          {loading: false, loadingError: undefined, id: 1, attributes: {id: 1, foo: 'bar1'}},
+          {loading: false, loadingError: undefined, id: 2, attributes: {id: 2, foo: 'bar2'}},
+          {loading: false, loadingError: undefined, id: 3, attributes: {id: 3, foo: 'bar3'}},
+          {loading: false, loadingError: undefined, id: 4, attributes: {id: 4, foo: 'bar4'}},
+          {loading: false, loadingError: undefined, id: 5, attributes: {id: 5, foo: 'bar5'}},
+          {loading: false, loadingError: undefined, id: 6, attributes: {id: 6, foo: 'bar6'}},
+        ]
+      }))
+    })
+
+    it('should keep overridden data in the same order', () => {
+      indexReducerState = indexReducerWithPaginate({}, {
+        type: 'Cats.INDEX_SUCCESS',
+        response: {Cats: [{id: 1, foo: 'bar1'}, {id: 2, foo: 'bar2'}, {id: 3, foo: 'bar3'}]}
+      })
+      indexReducerState = indexReducerWithPaginate(indexReducerState, {
+        type: 'Cats.INDEX_SUCCESS',
+        response: {Cats: [{id: 4, foo: 'bar4'}, {id: 5, foo: 'bar5'}, {id: 6, foo: 'bar6'}]}
+      })
+      indexReducerState = indexReducerWithPaginate(indexReducerState, {
+        type: 'Cats.INDEX_SUCCESS',
+        response: {Cats: [{id: 7, foo: 'bar7'}, {id: 2, foo: 'changedBar2'}, {id: 8, foo: 'bar8'}]}
+      })
+
+      expect(indexReducerState).toEqual(expectedCatsState({
+        models: [
+          {loading: false, loadingError: undefined, id: 1, attributes: {id: 1, foo: 'bar1'}},
+          {loading: false, loadingError: undefined, id: 2, attributes: {id: 2, foo: 'changedBar2'}},
+          {loading: false, loadingError: undefined, id: 3, attributes: {id: 3, foo: 'bar3'}},
+          {loading: false, loadingError: undefined, id: 4, attributes: {id: 4, foo: 'bar4'}},
+          {loading: false, loadingError: undefined, id: 5, attributes: {id: 5, foo: 'bar5'}},
+          {loading: false, loadingError: undefined, id: 6, attributes: {id: 6, foo: 'bar6'}},
+          {loading: false, loadingError: undefined, id: 7, attributes: {id: 7, foo: 'bar7'}},
+          {loading: false, loadingError: undefined, id: 8, attributes: {id: 8, foo: 'bar8'}},
+        ]
+      }))
+    })
+
+    it(`should keep not re-arrange data that's passed in a different order than originally`, () => {
+      indexReducerState = indexReducerWithPaginate({}, {
+        type: 'Cats.INDEX_SUCCESS',
+        response: {Cats: [{id: 1, foo: 'bar1'}, {id: 2, foo: 'bar2'}, {id: 3, foo: 'bar3'}]}
+      })
+      indexReducerState = indexReducerWithPaginate(indexReducerState, {
+        type: 'Cats.INDEX_SUCCESS',
+        response: {Cats: [{id: 2, foo: 'changedbar2'}, {id: 1, foo: 'changedbar1'}, {id: 3, foo: 'changedbar3'}]}
+      })
+      indexReducerState = indexReducerWithPaginate(indexReducerState, {
+        type: 'Cats.INDEX_SUCCESS',
+        response: {Cats: [{id: 5, foo: 'bar5'}]}
+      })
+      
+      expect(indexReducerState).toEqual(expectedCatsState({
+        models: [
+          {loading: false, loadingError: undefined, id: 1, attributes: {id: 1, foo: 'changedbar1'}},
+          {loading: false, loadingError: undefined, id: 2, attributes: {id: 2, foo: 'changedbar2'}},
+          {loading: false, loadingError: undefined, id: 3, attributes: {id: 3, foo: 'changedbar3'}},
+          {loading: false, loadingError: undefined, id: 5, attributes: {id: 5, foo: 'bar5'}},
+        ]
+      }))
+    })
   })
 })
