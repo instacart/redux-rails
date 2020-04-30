@@ -29,7 +29,7 @@ export default (inConfig) => {
       const isSingleModel = resourceNameSpace === 'attributes'
       const idAttribute = getResourceIdAttribute({config, resource})
       const { queryParams } = action.data || {}
-      
+
       switch(action.type) {
         case `${resource}.INDEX`: {
           const { paginated } = resourceConfig
@@ -73,11 +73,33 @@ export default (inConfig) => {
           if (resourceConfig.paginated) {
             // merge new models into existing models
             // prefer response's model data over existing model data
-            const newResponseIds = response.reduce((memo, r) => ({ ...memo, [r.id]: true }), {})
-            response = [
-              ...state.models.map(m => m.attributes).filter(m => !newResponseIds[m.id]),
-              ...response
-            ]
+            const newResponseIdMap = response.reduce((memo, r) => ({ ...memo, [r.id]: r }), {})
+            const existingData = state.models.map(m => m.attributes)
+            console.log(existingData.length, newResponseIdMap.length)
+
+            if (resourceConfig.maintainOrderOnMerge) {
+              // maintain order of existing data if response includes some of the same data
+              const updatedDataIds = {}
+              const updatedExistingData = existingData.map(m => {
+                if (newResponseIdMap[m.id]) {
+                  updatedDataIds[m.id] = true
+                  return newResponseIdMap[m.id]
+                }
+                return m
+              })
+
+              response = [
+                ...updatedExistingData,
+                ...response.filter(r => !updatedDataIds[r.id])
+              ]
+              console.log(response.length)
+            } else {
+              // push repeated data to bottom
+              response = [
+                ...existingData.filter(m => !newResponseIdMap[m.id]),
+                ...response
+              ]
+            }
           }
 
           return {
