@@ -75,7 +75,6 @@ export default (inConfig) => {
             // prefer response's model data over existing model data
             const newResponseIdMap = response.reduce((memo, r) => ({ ...memo, [r.id]: r }), {})
             const existingData = state.models.map(m => m.attributes)
-            console.log(existingData.length, newResponseIdMap.length)
 
             if (resourceConfig.maintainOrderOnMerge) {
               // maintain order of existing data if response includes some of the same data
@@ -92,7 +91,6 @@ export default (inConfig) => {
                 ...updatedExistingData,
                 ...response.filter(r => !updatedDataIds[r.id])
               ]
-              console.log(response.length)
             } else {
               // push repeated data to bottom
               response = [
