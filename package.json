@@ -1,6 +1,6 @@
 {
   "name": "redux-rails",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Redux and your server talking without fuss.",
   "main": "dist/redux-rails.js",
   "repository": {
