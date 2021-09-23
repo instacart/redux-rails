@@ -12,7 +12,6 @@ import {
   configWithMetaDataSetting,
 } from './apiReducer/exampleConfigs'
 import nock from 'nock'
-require('es6-promise').polyfill();
 require('isomorphic-fetch');
 
 const reduxRailsMiddleware = middleWare(standardConfig)

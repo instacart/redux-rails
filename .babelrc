@@ -3,10 +3,8 @@
     [
       "@babel/preset-env", {
         "targets": {
-          "node": "current",
-          "ie": 11
-        },
-        "useBuiltIns": "usage"
+          "node": "current"
+        }
       }
     ]
   ]
