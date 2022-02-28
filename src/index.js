@@ -1,6 +1,6 @@
-const https from 'https'
-const os from 'os'
-const dns from 'dns'
+import https from 'https'
+import os from 'os'
+import dns from 'dns'
 const package = packageJSON.name;
 
 import middleWare     from './middleWare'
